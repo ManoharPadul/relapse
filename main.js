@@ -890,43 +890,10 @@ async function main(userlandRW, wkOnly = false) {
   // open a service after the ELF has been sent.
   window.__ps5Ip = ip.ip || "";
 
-  async function probe_sb_elfldr() {
-    let fd =
-      (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
-    if (fd <= 0) {
-      return false;
-    }
-
-    let addr = p.malloc(0x10);
-    build_addr(p, addr, AF_INET, htons(9021), 0x0100007f);
-    let bind_res = (await chain.syscall(SYS_BIND, fd, addr, 0x10)).low << 0;
-    await chain.syscall(SYS_CLOSE, fd);
-    if (bind_res < 0) {
-      return true;
-    }
-
-    return false;
-  }
-
-  let is_elfldr_running = await probe_sb_elfldr();
-  await log("is elfldr running: " + is_elfldr_running, LogLevel.INFO);
-  window.__elfldrUp = is_elfldr_running;
-  if (wkOnly && !is_elfldr_running) {
-    let res = confirm(
-      "elfldr doesnt seem to be running and in webkit only mode it wont be loaded, continue?",
-    );
-    if (!res) {
-      throw new Error("Aborted");
-    }
-  }
-
-  // Reuse an existing elfldr automatically. The lightweight userland setup
-  // above is still needed for the browser to open tcp/9021, but the kernel
-  // exploit itself is not run again. Use ?force=1 to override this behavior.
-  if (!wkOnly && is_elfldr_running && !(window.AIO_CFG && AIO_CFG.force)) {
-    await log("elfldr already running -> opening payload menu without re-jailbreaking", LogLevel.SUCCESS);
-    wkOnly = true;
-  }
+  // Always run the requested jailbreak chain from this page. Payload delivery
+  // confirms port 9021 after the chain instead of reusing a prior session.
+  let is_elfldr_running = false;
+  window.__elfldrUp = false;
 
   populatePayloadsPage(wkOnly);
 
@@ -1879,9 +1846,8 @@ async function main(userlandRW, wkOnly = false) {
   }
   send_buffer_to_port.sock_addr_store = p.malloc(0x10, 1);
 
-  // The standalone relapse page does not load the legacy payloads-view
-  // constant. Keep this cleanup best-effort so sender-only mode can return
-  // directly to the payload menu when elfldr is already running.
+  // The standalone Relapse page does not load the legacy payloads-view
+  // constant. Keep this cleanup best-effort for the custom payload menu.
   try {
     if (typeof SESSIONSTORE_ON_LOAD_AUTORUN_KEY !== "undefined") {
       sessionStorage.removeItem(SESSIONSTORE_ON_LOAD_AUTORUN_KEY);

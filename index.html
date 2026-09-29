@@ -395,8 +395,7 @@ async function run() {
     // WebKit bug depends on is sensitive to what is sitting there.
     await import("./exploit.js");
 
-    // main() probes port 9021 first. If elfldr is already running it switches
-    // to sender-only mode; otherwise it performs the jailbreak once.
+    // Run the jailbreak chain, then keep this document for payload delivery.
     await main(p);
 
     // Draw the payload menu HERE rather than handing off to elf.html.
@@ -412,9 +411,7 @@ async function run() {
     if (typeof window.__sendPayload !== "function") return;
     if (!(await confirmPayloadLoader()))
         print("elfldr was not confirmed yet; opening the payload menu anyway", "LOG-WARN");
-    print(window.__elfldrUp
-        ? "elfldr is ready - opening payload menu without re-jailbreaking"
-        : "jailbreak complete - opening payload menu", "LOG-SUCCESS");
+    print("jailbreak complete - opening payload menu", "LOG-SUCCESS");
     await sleep(0); // give WebKit one paint turn before building the first menu
     buildPayloadMenu();
 }
