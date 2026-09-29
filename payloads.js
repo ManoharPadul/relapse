@@ -7,6 +7,8 @@ window.PAYLOAD_TILES = [
     { title: "websrv", description: "Homebrew web server. Runs on port 8080.", name: "websrv-ps5.elf", key: "web" },
     { title: "pldmgr", description: "pldmgr payload.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
     { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
-    { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false }
+    { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
+    { title: "game-compressor", description: "Game compressor payload.", name: "game-compressor.elf", key: "game-compressor", art: false },
+    { title: "elf-arsenal", description: "ELF Arsenal payload.", name: "elf-arsenal.elf", key: "elf-arsenal", art: false }
 ];
 window.PAYLOAD_ART = { dir: "ui/", pfx: "btn-", on: true };

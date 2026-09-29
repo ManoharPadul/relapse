@@ -1,4 +1,4 @@
-const CACHE_NAME = "ps5-offline-v4";
+const CACHE_NAME = "ps5-offline-v5";
 
 const STATIC_ASSETS = [
   "./",
@@ -49,6 +49,8 @@ const STATIC_ASSETS = [
   "./payloads/elfldr-ps5-1360.elf",
   "./payloads/etaHEN.elf",
   "./payloads/ftpsrv-ps5.elf",
+  "./payloads/game-compressor.elf",
+  "./payloads/elf-arsenal.elf",
   "./payloads/kexp_2026_05_25.bin",
   "./payloads/klogsrv-ps5.elf",
   "./payloads/kstuff.elf",
