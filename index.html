@@ -59,6 +59,10 @@
       margin-top: 10px;
       background: #0c0c0f;
       color: #fff;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
       font: 16px/1.35 Arial, sans-serif;
       white-space: normal;
       word-break: normal;
@@ -95,11 +99,15 @@
       border: 0;
       border-radius: 20px;
       background: #202125;
-      color: #fff;
+      color: #fff !important;
       cursor: pointer;
       text-align: center;
       font: inherit;
       line-height: 1.5;
+      opacity: 1;
+      visibility: visible;
+      -webkit-appearance: none;
+      appearance: none;
   }
   .relapse-payload-tile:hover,
   .relapse-payload-tile:focus { outline: 0; background: #a2a2a6; color: #202020; }
@@ -108,8 +116,9 @@
   .relapse-payload-tile.sent { border: 2px solid #47c76a; }
   .relapse-payload-tile.failed { border: 2px solid #e74856; }
   .relapse-payload-title { display: block; margin: 0; color: #fff; font-size: 21px; font-weight: 800; }
-  .relapse-payload-description { display: block; margin: 0; color: #ccc; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .relapse-payload-info { display: block; margin: 0; color: #999; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .relapse-payload-title { -webkit-text-fill-color: #fff; }
+  .relapse-payload-description { display: block; margin: 0; color: #ccc; -webkit-text-fill-color: #ccc; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .relapse-payload-info { display: block; margin: 0; color: #999; -webkit-text-fill-color: #999; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .relapse-payload-tile:hover .relapse-payload-title,
   .relapse-payload-tile:focus .relapse-payload-title { color: #202020; }
   .relapse-payload-tile:hover .relapse-payload-description,
@@ -449,6 +458,16 @@ function buildPayloadMenu() {
         wrap.appendChild(a);
     }
     document.getElementById("console").appendChild(screen);
+    // PS5 WebKit can defer painting dynamically-added text until a hover
+    // invalidates the card. Force one layout/paint while keeping the screen
+    // composited so the labels are visible on first render.
+    void screen.offsetHeight;
+    screen.style.visibility = "hidden";
+    void screen.offsetHeight;
+    screen.style.visibility = "visible";
+    screen.style.webkitTransform = "translateZ(0)";
+    screen.style.transform = "translateZ(0)";
+    void screen.offsetHeight;
     try { wrap.firstChild.focus(); } catch (e) { /* not fatal */ }
     print("elfldr is up - pick a payload", "LOG-SUCCESS");
 }
