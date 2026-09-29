@@ -30,6 +30,82 @@
   .LOG-WARN { color: #ffd27d; }
   .LOG-ERROR { color: #ff6b6b; }
   .LOG-SUCCESS { color: #7dff9e; }
+
+  /* Slopkit-style in-page payload screen. Keeping it in this document is
+     important: the exploit primitives and the console-side sender stay alive. */
+  body.payload-mode { background: #0c0c0f; color: #fff; }
+  body.payload-mode #console {
+      display: block;
+      box-sizing: border-box;
+      min-height: 100vh;
+      padding: 8px 0 0;
+      color: #fff;
+      font: 12px/1.35 ui-monospace, Consolas, monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow-y: auto;
+  }
+  body.payload-mode #console > div:not(.relapse-payload-screen) { padding: 1px 12px; }
+  .relapse-payload-screen {
+      margin-top: 10px;
+      background: #0c0c0f;
+      color: #fff;
+      font: 16px/1.35 Arial, sans-serif;
+      white-space: normal;
+      word-break: normal;
+  }
+  .relapse-payload-header {
+      box-sizing: border-box;
+      min-height: 112px;
+      padding: 8px;
+      text-align: center;
+  }
+  .relapse-payload-header h2 { margin: 6px 0; color: #fff; font-size: 30px; line-height: 1.2; }
+  .relapse-payload-header .eyebrow { color: #7dff9e; font-size: 16px; }
+  .relapse-payload-header p { margin: 0; color: #ccc; font-size: 15px; }
+  .relapse-payload-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 36px;
+      width: 100%;
+      padding: 0 32px 32px;
+      box-sizing: border-box;
+      align-content: start;
+  }
+  .relapse-payload-tile {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      margin: 3px;
+      padding: 16px 24px;
+      box-sizing: border-box;
+      border: 0;
+      border-radius: 20px;
+      background: #202125;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      font: inherit;
+      line-height: 1.5;
+  }
+  .relapse-payload-tile:hover,
+  .relapse-payload-tile:focus { outline: 0; background: #a2a2a6; color: #202020; }
+  .relapse-payload-tile:focus { box-shadow: 0 0 0 3px #ebcb8b; }
+  .relapse-payload-tile.busy { opacity: .5; pointer-events: none; }
+  .relapse-payload-tile.sent { border: 2px solid #47c76a; }
+  .relapse-payload-tile.failed { border: 2px solid #e74856; }
+  .relapse-payload-title { display: block; margin: 0; color: #fff; font-size: 21px; font-weight: 800; }
+  .relapse-payload-description { display: block; margin: 0; color: #ccc; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .relapse-payload-info { display: block; margin: 0; color: #999; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .relapse-payload-tile:hover .relapse-payload-title,
+  .relapse-payload-tile:focus .relapse-payload-title { color: #202020; }
+  .relapse-payload-tile:hover .relapse-payload-description,
+  .relapse-payload-tile:focus .relapse-payload-description { color: #444; }
+  .relapse-payload-tile:hover .relapse-payload-info,
+  .relapse-payload-tile:focus .relapse-payload-info { color: #555; }
+  @media (max-width: 760px) {
+      .relapse-payload-grid { grid-template-columns: 1fr; padding-left: 16px; padding-right: 16px; }
+  }
 </style>
 </head>
 <body>
@@ -186,85 +262,79 @@ async function run() {
 
 /** Tiles are PNGs: this browser lays text tiles out correctly and paints no glyphs. */
 function buildPayloadMenu() {
+    if (document.getElementById("relapse-payload-screen")) return;
     const tiles = (window.PAYLOAD_TILES || []).slice();
     const fallbackTiles = [
-        { title: "pldmgr", description: "Web manager. Open PS5-IP:8084.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
+        { title: "PLK Manager / pldmgr", description: "Web manager. Open PS5-IP:8084.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
         { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
         { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
         { title: "game-compressor", description: "Game compressor payload.", name: "game-compressor.elf", key: "game-compressor", art: false },
-        { title: "elf-arsenal", description: "ELF Arsenal payload.", name: "elf-arsenal.elf", key: "elf-arsenal", art: false }
+        { title: "elf-arsenal", description: "ELF Arsenal payload.", name: "elf-arsenal.elf", key: "elf-arsenal", art: false },
+        { title: "gdbsrv", description: "GDB server. Runs on port 2159.", name: "gdbsrv-ps5.elf", key: "gdb", art: false },
+        { title: "shsrv", description: "Telnet shell server. Runs on port 2323.", name: "shsrv-ps5.elf", key: "shsrv", art: false }
     ];
     for (const fallback of fallbackTiles) {
         if (!tiles.some((tile) => tile.name === fallback.name)) tiles.push(fallback);
     }
-    const art = window.PAYLOAD_ART || { dir: "ui/", pfx: "btn-", on: false };
     if (!tiles.length) return print("no payload list (payloads.js missing)", "LOG-ERROR");
 
-    const artSrc = (key, state) => art.dir + art.pfx + key + "-" + state + ".png";
+    document.body.classList.add("payload-mode");
+    const screen = document.createElement("section");
+    screen.id = "relapse-payload-screen";
+    screen.className = "relapse-payload-screen";
+    const header = document.createElement("div");
+    header.className = "relapse-payload-header";
+    header.innerHTML = '<h2>PS5 Relapse Payloads</h2>'
+        + '<div class="eyebrow" id="relapse-payload-status">ELF loader ready on console port 9021</div>'
+        + '<p>Select a payload to send it to the ELF loader.</p>';
     const wrap = document.createElement("div");
-    wrap.style.cssText = "display:grid;grid-template-columns:repeat(2,minmax(0,1fr));"
-        + "gap:1rem 2.5rem;max-width:96vw;margin:14px auto;padding:0 1rem";
+    wrap.className = "relapse-payload-grid";
+    screen.appendChild(header);
+    screen.appendChild(wrap);
 
     for (const t of tiles) {
-        const a = document.createElement("a");
-        a.href = "#";
-        a.style.cssText = "display:block;border-radius:1.25rem;text-decoration:none;"
-            + "color:#e8eaed;font:15px system-ui,sans-serif";
-        let img = null;
-        let textTile = false;
-        if (art.on && t.art !== false) {
-            img = document.createElement("img");
-            img.width = 626; img.height = 104; img.alt = t.title;
-            img.src = artSrc(t.key, "default");
-            img.style.cssText = "display:block;width:100%;height:auto";
-            // Preload the other states; swapping to an unfetched PNG shows a blank tile.
-            for (const st of ["sending", "sent", "failed"]) new Image().src = artSrc(t.key, st);
-            a.appendChild(img);
-        } else {
-            textTile = true;
-            a.textContent = t.title + " - " + t.description;
-            a.style.cssText += "padding:14px 16px;border:2px solid #2b3440;"
-                + "border-radius:10px;background:#141a21;box-sizing:border-box;"
-                + "cursor:pointer;min-height:58px";
-        }
+        const a = document.createElement("button");
+        a.type = "button";
+        a.className = "relapse-payload-tile";
+        const title = document.createElement("span");
+        title.className = "relapse-payload-title";
+        title.textContent = t.title;
+        const description = document.createElement("span");
+        description.className = "relapse-payload-description";
+        description.textContent = t.description;
+        const info = document.createElement("span");
+        info.className = "relapse-payload-info";
+        info.textContent = t.name + " · port 9021";
+        a.appendChild(title);
+        a.appendChild(description);
+        a.appendChild(info);
         a.addEventListener("click", async (e) => {
             e.preventDefault();
-            const mark = (st) => { if (img) img.src = artSrc(t.key, st); };
-            const sayTile = (message) => { if (textTile) a.textContent = message; };
-            mark("sending");
-            sayTile(t.title + " - sending ELF...");
+            a.classList.remove("sent", "failed");
+            a.classList.add("busy");
+            info.textContent = "Sending ELF to port 9021...";
+            document.getElementById("relapse-payload-status").textContent = "Sending " + t.title + "...";
             print(t.title + ": sending ...", "LOG-INFO");
             try {
                 const n = await window.__sendPayload(t.name);
-                mark("sent");
-                const note = t.key === "nanodns" || t.key === "shadowmountplus"
-                    ? " (runs in background; no page opens)" : "";
-                sayTile(t.title + " - sent " + n + " bytes" + note);
+                a.classList.remove("busy");
+                a.classList.add("sent");
+                info.textContent = "Sent " + n + " bytes · port 9021";
+                document.getElementById("relapse-payload-status").textContent =
+                    t.key === "pldmgr" ? "PLK Manager sent · open PS5-IP:8084" : t.title + " sent to port 9021";
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
-                if (t.key === "pldmgr" && typeof window.__probeLocalPort === "function") {
-                    let running = false;
-                    for (let attempt = 0; attempt < 8 && !running; attempt++) {
-                        await new Promise((resolve) => setTimeout(resolve, 500));
-                        try { running = await window.__probeLocalPort(8084); } catch (probeError) { running = false; }
-                    }
-                    if (running) {
-                        sayTile(t.title + " - sent " + n + " bytes; server running on :8084");
-                        print("pldmgr: server is listening on 127.0.0.1:8084", "LOG-SUCCESS");
-                    } else {
-                        sayTile(t.title + " - sent " + n + " bytes; no loopback on :8084");
-                        print("pldmgr: no loopback listener; try the PS5 IP on port 8084", "LOG-WARN");
-                    }
-                }
             } catch (err) {
-                mark("failed");
+                a.classList.remove("busy");
+                a.classList.add("failed");
                 const message = String((err && err.message) || err);
-                sayTile(t.title + " - failed: " + message);
+                info.textContent = "Failed: " + message;
+                document.getElementById("relapse-payload-status").textContent = t.title + " failed";
                 print(t.title + ": " + message, "LOG-ERROR");
             }
         });
         wrap.appendChild(a);
     }
-    document.getElementById("console").appendChild(wrap);
+    document.getElementById("console").appendChild(screen);
     try { wrap.firstChild.focus(); } catch (e) { /* not fatal */ }
     print("elfldr is up - pick a payload", "LOG-SUCCESS");
 }

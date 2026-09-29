@@ -964,31 +964,60 @@ async function main(userlandRW, wkOnly = false) {
   // Keep the sender available in both modes: after a fresh jailbreak and when
   // an existing elfldr is detected on a later page visit.
   const sendAddr = p.malloc(0x10, 1);
+  // Match Slopkit's sender: bounded writes, SO_NOSIGPIPE, and a send timeout
+  // make large payloads reliable on the PS5 WebKit ROP syscall path.
+  const payloadSendBuffer = p.malloc(0x10000, 1);
+  const payloadNoSigPipe = p.malloc(4, 1);
+  const payloadSendTimeout = p.malloc(0x10, 1);
+  p.write4(payloadNoSigPipe, 1);
+  p.write4(payloadSendTimeout, 15);
+  p.write4(payloadSendTimeout.add32(4), 0);
+  p.write4(payloadSendTimeout.add32(8), 0);
+  p.write4(payloadSendTimeout.add32(12), 0);
+  const SOL_SOCKET = 0xffff;
+  const SO_NOSIGPIPE = 0x0800;
+  const SO_SNDTIMEO = 0x1005;
   window.__sendPayload = async function (filename) {
-    const size = await load_payload_into_elf_store_from_local_file(filename);
-    if (!size) throw new Error("payload is empty: " + filename);
+    await log("Loading ELF file: " + filename + " ...", LogLevel.LOG);
+    const response = await fetch("payloads/" + encodeURIComponent(filename), { cache: "no-store" });
+    if (!response.ok) throw new Error("payload fetch failed: HTTP " + response.status);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (!bytes.length) throw new Error("payload is empty");
+    if (bytes.length > 0x400000) throw new Error("payload is larger than the 4 MiB limit");
+    if (bytes.length < 4 || bytes[0] !== 0x7f || bytes[1] !== 0x45
+        || bytes[2] !== 0x4c || bytes[3] !== 0x46)
+      throw new Error("payload does not start with the ELF signature");
 
     const sock = (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
     if (sock <= 0) throw new Error("socket() failed");
     build_addr(p, sendAddr, AF_INET, htons(9021), 0x0100007f);
-    const rv = (await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0;
-    if (rv < 0) {
-      await chain.syscall(SYS_CLOSE, sock);
-      throw new Error("elfldr is not listening on 127.0.0.1:9021");
-    }
-
     let sent = 0;
-    const ptr = elf_store.add32(0x0);
-    while (sent < size) {
-      const w = (await chain.syscall(SYS_WRITE, sock, ptr, size - sent)).low << 0;
-      if (w <= 0) {
-        await chain.syscall(SYS_CLOSE, sock);
-        throw new Error("write failed after " + sent + " of " + size + " bytes");
+    try {
+      let rv = (await chain.syscall(SYS_SETSOCKOPT, sock, SOL_SOCKET, SO_NOSIGPIPE,
+        payloadNoSigPipe, 4)).low << 0;
+      if (rv < 0) throw new Error("setsockopt(SO_NOSIGPIPE) failed");
+      rv = (await chain.syscall(SYS_SETSOCKOPT, sock, SOL_SOCKET, SO_SNDTIMEO,
+        payloadSendTimeout, 0x10)).low << 0;
+      if (rv < 0) throw new Error("setsockopt(SO_SNDTIMEO) failed");
+      rv = (await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0;
+      if (rv < 0) throw new Error("elfldr is not listening on 127.0.0.1:9021");
+
+      while (sent < bytes.length) {
+        const blockSize = Math.min(0x10000, bytes.length - sent);
+        payloadSendBuffer.backing.set(bytes.subarray(sent, sent + blockSize), 0);
+        let blockSent = 0;
+        while (blockSent < blockSize) {
+          const w = (await chain.syscall(SYS_WRITE, sock,
+            payloadSendBuffer.add32(blockSent), blockSize - blockSent)).low << 0;
+          if (w <= 0) throw new Error("write failed after " + (sent + blockSent)
+            + " of " + bytes.length + " bytes");
+          blockSent += w;
+        }
+        sent += blockSize;
       }
-      sent += w;
-      ptr.add32inplace(w);
+    } finally {
+      try { await chain.syscall(SYS_CLOSE, sock); } catch (e) { /* best effort */ }
     }
-    await chain.syscall(SYS_CLOSE, sock);
     return sent;
   };
   window.__probeLocalPort = async function (port) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "ps5-offline-v10";
+const CACHE_NAME = "ps5-offline-v11";
 
 const STATIC_ASSETS = [
   "./",
@@ -49,14 +49,17 @@ const STATIC_ASSETS = [
   "./payloads/elfldr-ps5-1360.elf",
   "./payloads/etaHEN.elf",
   "./payloads/ftpsrv-ps5.elf",
+  "./payloads/gdbsrv-ps5.elf",
   "./payloads/game-compressor.elf",
   "./payloads/elf-arsenal.elf",
   "./payloads/kexp_2026_05_25.bin",
   "./payloads/klogsrv-ps5.elf",
   "./payloads/kstuff.elf",
+  "./payloads/PLK.elf",
   "./payloads/nanodns.elf",
   "./payloads/pldmgr_v0.5.1.elf",
   "./payloads/shadowmountplus.elf",
+  "./payloads/shsrv-ps5.elf",
   "./payloads/websrv-ps5.elf",
   "./ui/btn-etahen-default.png",
   "./ui/btn-etahen-failed.png",
