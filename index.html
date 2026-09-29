@@ -71,6 +71,7 @@
   }
   .relapse-payload-header h2 { margin: 6px 0; color: #fff; font-size: 30px; line-height: 1.2; }
   .relapse-payload-header .eyebrow { color: #7dff9e; font-size: 16px; }
+  .relapse-payload-byline { margin: 4px 0 8px; color: #bdbdbd; font-size: 13px; letter-spacing: .04em; }
   .relapse-payload-header p { margin: 0; color: #ccc; font-size: 15px; }
   .relapse-payload-grid {
       display: grid;
@@ -324,6 +325,7 @@ function buildPayloadMenu() {
     const header = document.createElement("div");
     header.className = "relapse-payload-header";
     header.innerHTML = '<h2>PS5 Relapse Payloads</h2>'
+        + '<div class="relapse-payload-byline">By Manohar Padul</div>'
         + '<div class="eyebrow" id="relapse-payload-status">ELF loader ready on console port 9021</div>'
         + '<p>Select a payload to send it to the ELF loader.</p>';
     const wrap = document.createElement("div");
