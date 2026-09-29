@@ -1,4 +1,4 @@
-const CACHE_NAME = "ps5-offline-v17";
+const CACHE_NAME = "ps5-offline-v18";
 
 const STATIC_ASSETS = [
   "./",
@@ -66,7 +66,8 @@ const STATIC_ASSETS = [
   "./ui/btn-web-failed.png",
   "./ui/btn-web-sending.png",
   "./ui/btn-web-sent.png",
-  "./ui/hdr-payloads.png"
+  "./ui/hdr-payloads.png",
+  "./payloads/CheatRunner.elf"
 ];
 
 self.addEventListener("install", function (event) {

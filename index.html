@@ -308,7 +308,8 @@ function buildPayloadMenu() {
         { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052", art: false },
         { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
         { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
-        { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false }
+        { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false },
+        { title: "CheatRunner v0.17", description: "Local cheat dashboard. Opens port 9999.", name: "CheatRunner.elf", key: "cheatrunner", art: false }
     ];
     for (const fallback of fallbackTiles) {
         if (!tiles.some((tile) => tile.name === fallback.name)) tiles.push(fallback);
@@ -363,6 +364,8 @@ function buildPayloadMenu() {
                         ? "PLK Manager sent · open PS5-IP:8084"
                         : t.key === "game-compressor"
                             ? "Game Compressor sent · opening local port 5910"
+                            : t.key === "cheatrunner"
+                                ? "CheatRunner sent · opening local port 9999"
                             : t.title + " sent to port 9021";
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
                 if (t.key === "game-compressor") {
@@ -370,6 +373,13 @@ function buildPayloadMenu() {
                     if (/^[0-9.]+$/.test(ip)) {
                         await new Promise((resolve) => setTimeout(resolve, 1000));
                         location.href = "http://" + ip + ":5910/";
+                    }
+                }
+                if (t.key === "cheatrunner") {
+                    const ip = String(window.__ps5Ip || "127.0.0.1");
+                    if (/^[0-9.]+$/.test(ip)) {
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        location.href = "http://" + ip + ":9999/";
                     }
                 }
             } catch (err) {
