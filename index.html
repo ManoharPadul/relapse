@@ -67,6 +67,7 @@ window.offsetsReady = new Promise(function (resolve, reject) {
     window.AIO_CFG = {};
     if (query.get("kexp")) AIO_CFG.kexp = query.get("kexp");
     if (query.get("elfldr")) AIO_CFG.elfldr = query.get("elfldr");
+    if (query.get("force") === "1") AIO_CFG.force = true;
     if (query.get("log") !== "0") document.body.classList.add("verbose");
 })();
 </script>

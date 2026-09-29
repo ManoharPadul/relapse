@@ -902,6 +902,7 @@ async function main(userlandRW, wkOnly = false) {
 
   let is_elfldr_running = await probe_sb_elfldr();
   await log("is elfldr running: " + is_elfldr_running, LogLevel.INFO);
+  window.__elfldrUp = is_elfldr_running;
   if (wkOnly && !is_elfldr_running) {
     let res = confirm(
       "elfldr doesnt seem to be running and in webkit only mode it wont be loaded, continue?",
@@ -911,23 +912,12 @@ async function main(userlandRW, wkOnly = false) {
     }
   }
 
-  // elfldr already up (operator running elfldr+klog) used to pop a confirm() offering to skip the
-  // kernel exploit and go sender-only -- which blocked ?go=1 auto-runs and jumped straight to the
-  // payload page. During aio-chain bring-up we WANT the exploit to run regardless of elfldr. The
-  // skip is now opt-in via ?senderok=1 (AIO_CFG.senderok); default runs the exploit.
-  if (!wkOnly && is_elfldr_running) {
-    if (window.AIO_CFG && AIO_CFG.senderok) {
-      await log(
-        "elfldr running + ?senderok=1 -> sender-only mode (exploit skipped)",
-        LogLevel.INFO,
-      );
-      wkOnly = true;
-    } else {
-      await log(
-        "elfldr running, but running the kernel exploit anyway (?senderok=1 to skip)",
-        LogLevel.INFO,
-      );
-    }
+  // Reuse an existing elfldr automatically. The lightweight userland setup
+  // above is still needed for the browser to open tcp/9021, but the kernel
+  // exploit itself is not run again. Use ?force=1 to override this behavior.
+  if (!wkOnly && is_elfldr_running && !(window.AIO_CFG && AIO_CFG.force)) {
+    await log("elfldr already running -> opening payload menu without re-jailbreaking", LogLevel.SUCCESS);
+    wkOnly = true;
   }
 
   populatePayloadsPage(wkOnly);
@@ -970,6 +960,45 @@ async function main(userlandRW, wkOnly = false) {
   // kernel-side shellcode brought elfldr up on 9021 and the in-browser JIT
   // loader (9020) is skipped; payloads go to 9021 instead.
   let kexpElfldr = false;
+
+  // Keep the sender available in both modes: after a fresh jailbreak and when
+  // an existing elfldr is detected on a later page visit.
+  const sendAddr = p.malloc(0x10, 1);
+  window.__sendPayload = async function (filename) {
+    const size = await load_payload_into_elf_store_from_local_file(filename);
+    if (!size) throw new Error("payload is empty: " + filename);
+
+    const sock = (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
+    if (sock <= 0) throw new Error("socket() failed");
+    build_addr(p, sendAddr, AF_INET, htons(9021), 0x0100007f);
+    const rv = (await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0;
+    if (rv < 0) {
+      await chain.syscall(SYS_CLOSE, sock);
+      throw new Error("elfldr is not listening on 127.0.0.1:9021");
+    }
+
+    let sent = 0;
+    const ptr = elf_store.add32(0x0);
+    while (sent < size) {
+      const w = (await chain.syscall(SYS_WRITE, sock, ptr, size - sent)).low << 0;
+      if (w <= 0) {
+        await chain.syscall(SYS_CLOSE, sock);
+        throw new Error("write failed after " + sent + " of " + size + " bytes");
+      }
+      sent += w;
+      ptr.add32inplace(w);
+    }
+    await chain.syscall(SYS_CLOSE, sock);
+    return sent;
+  };
+  window.__probeLocalPort = async function (port) {
+    const sock = (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
+    if (sock < 0) return false;
+    build_addr(p, sendAddr, AF_INET, htons(port), 0x0100007f);
+    const rv = (await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0;
+    await chain.syscall(SYS_CLOSE, sock);
+    return rv >= 0;
+  };
 
   if (!wkOnly) {
     var krw;
@@ -1837,6 +1866,7 @@ async function main(userlandRW, wkOnly = false) {
   );
 
   await new Promise((resolve) => setTimeout(resolve, 300));
+  if (wkOnly) return;
   await switchPage("payloads-view");
 
   while (true) {
