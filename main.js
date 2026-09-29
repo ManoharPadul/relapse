@@ -886,6 +886,10 @@ async function main(userlandRW, wkOnly = false) {
     ip = { ip: "", name: "Offline" };
   }
 
+  // Make the detected console address available to payload-menu actions that
+  // open a service after the ELF has been sent.
+  window.__ps5Ip = ip.ip || "";
+
   async function probe_sb_elfldr() {
     let fd =
       (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
