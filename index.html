@@ -75,10 +75,6 @@
       display: grid;
       grid-template-rows: auto 1fr;
       min-height: 100vh;
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
       font: 16px/1.35 Arial, sans-serif;
       white-space: normal;
       word-break: normal;
@@ -174,6 +170,45 @@
   @media (max-width: 760px) {
       .relapse-payload-grid { grid-template-columns: 1fr; padding-left: 16px; padding-right: 16px; }
   }
+  /* Keep payloads in normal document flow on the console browser. */
+  body.payload-mode #console {
+      position: absolute;
+      left: -100000px;
+      top: 0;
+      width: 1px;
+      height: 1px;
+      min-height: 0;
+      overflow: hidden;
+      pointer-events: none;
+  }
+  body.payload-only-mode .relapse-payload-screen {
+      display: block;
+      overflow: visible;
+      box-sizing: border-box;
+  }
+  .relapse-payload-grid {
+      display: block;
+      overflow: visible;
+  }
+  .relapse-payload-grid::after {
+      content: "";
+      display: block;
+      clear: both;
+  }
+  .relapse-payload-grid .relapse-payload-tile {
+      display: block;
+      float: left;
+      width: 48%;
+      margin: 8px 1%;
+      min-height: 120px;
+      transition: none;
+      transform: none;
+      -webkit-transform: none;
+  }
+  .relapse-payload-grid .relapse-payload-tile:nth-child(odd) { clear: left; }
+  @media (max-width: 760px) {
+      .relapse-payload-grid .relapse-payload-tile { width: 98%; }
+  }
 </style>
 </head>
 <body>
@@ -254,7 +289,8 @@ function __flushLogs(){
         if (!first || first === screen) break;
         first.remove();
     }
-    if (document.body.classList.contains("verbose")) view.scrollTop=view.scrollHeight;
+    if (!document.body.classList.contains("payload-mode") &&
+        document.body.classList.contains("verbose")) view.scrollTop=view.scrollHeight;
 }
 function print(message, level) {
     __bcn(message);
@@ -288,17 +324,17 @@ async function ensureOfflineCache() {
 
     setCacheStatus("Preparing the complete offline bundle before jailbreak...", "LOG-INFO");
     print("preparing the complete offline bundle before jailbreak", "LOG-INFO");
-    let registration = await navigator.serviceWorker.register("./sw.js?v=26", { scope: "./" });
+    let registration = await navigator.serviceWorker.register("./sw.js?v=27", { scope: "./" });
     try { await registration.update(); } catch (e) { /* an already-current worker is fine */ }
 
     let worker = null;
     for (let attempt = 0; attempt < 40; attempt++) {
         registration = await navigator.serviceWorker.ready;
         worker = registration.active;
-        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=26") !== -1) break;
+        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=27") !== -1) break;
         await sleep(250);
     }
-    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=26") === -1) {
+    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=27") === -1) {
         throw new Error("offline cache worker did not activate");
     }
 
@@ -507,12 +543,13 @@ function buildPayloadMenu() {
     // hidden subtree: PS5 WebKit can leave its text unpainted until a hover
     // or focus event.
     document.body.classList.add("payload-mode", "payload-only-mode");
-    document.getElementById("console").appendChild(screen);
+    // Keep the menu outside the scrolling log and its visibility rules.
+    document.body.appendChild(screen);
+    document.getElementById("console").scrollTop = 0;
+    window.scrollTo(0, 0);
     void screen.offsetHeight;
     void wrap.offsetHeight;
     void document.getElementById("console").offsetHeight;
-    screen.style.webkitTransform = "translateZ(0)";
-    screen.style.transform = "translateZ(0)";
     void screen.offsetHeight;
     setTimeout(() => {
         void screen.offsetHeight;
