@@ -358,8 +358,7 @@ function buildPayloadMenu() {
     const fallbackTiles = [
         { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052", art: false },
         { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
-        { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
-        { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false }
+        { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false }
     ];
     for (const fallback of fallbackTiles) {
         if (!tiles.some((tile) => tile.name === fallback.name)) tiles.push(fallback);
@@ -412,17 +411,8 @@ function buildPayloadMenu() {
                 document.getElementById("relapse-payload-status").textContent =
                     t.key.indexOf("pldmgr") === 0 || t.key === "plk"
                         ? "PLK Manager sent · open PS5-IP:8084"
-                        : t.key === "game-compressor"
-                            ? "Game Compressor sent · opening local port 5910"
-                            : t.title + " sent to port 9021";
+                        : t.title + " sent to port 9021";
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
-                if (t.key === "game-compressor") {
-                    const ip = String(window.__ps5Ip || "127.0.0.1");
-                    if (/^[0-9.]+$/.test(ip)) {
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
-                        location.href = "http://" + ip + ":5910/";
-                    }
-                }
             } catch (err) {
                 a.classList.remove("busy");
                 a.classList.add("failed");

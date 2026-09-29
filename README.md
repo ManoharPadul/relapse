@@ -19,9 +19,6 @@ have to be read out of.
 host that runs code and can reach the console (`api/` ships PHP and node handlers),
 so it does not work on GitHub Pages - use the run page's own menu there.
 
-The bundled Game Compressor 1.0.4 payload is rebuilt with the Relapse PS5 SDK for
-the 13.60 payload set and opens its local service on port 5910.
-
 ## Offline browser cache
 
 The main page prepares cache bundle **v20 before starting the exploit**. It

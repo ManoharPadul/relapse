@@ -77,7 +77,6 @@ const OFFLINE_PAYLOADS = [
   "./payloads/elfldr-ps5-1360.elf",
   "./payloads/etaHEN.elf",
   "./payloads/ftpsrv-ps5.elf",
-  "./payloads/game-compressor.elf",
   "./payloads/kexp_2026_05_25.bin",
   "./payloads/kstuff.elf",
   "./payloads/nanodns.elf",
