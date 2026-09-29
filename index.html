@@ -208,6 +208,7 @@ function buildPayloadMenu() {
         a.style.cssText = "display:block;border-radius:1.25rem;text-decoration:none;"
             + "color:#e8eaed;font:15px system-ui,sans-serif";
         let img = null;
+        let textTile = false;
         if (art.on && t.art !== false) {
             img = document.createElement("img");
             img.width = 626; img.height = 104; img.alt = t.title;
@@ -217,20 +218,29 @@ function buildPayloadMenu() {
             for (const st of ["sending", "sent", "failed"]) new Image().src = artSrc(t.key, st);
             a.appendChild(img);
         } else {
+            textTile = true;
             a.textContent = t.title + " - " + t.description;
+            a.style.cssText += "padding:14px 16px;border:2px solid #2b3440;"
+                + "border-radius:10px;background:#141a21;box-sizing:border-box;"
+                + "cursor:pointer;min-height:58px";
         }
         a.addEventListener("click", async (e) => {
             e.preventDefault();
             const mark = (st) => { if (img) img.src = artSrc(t.key, st); };
+            const sayTile = (message) => { if (textTile) a.textContent = message; };
             mark("sending");
+            sayTile(t.title + " - sending ELF...");
             print(t.title + ": sending ...", "LOG-INFO");
             try {
                 const n = await window.__sendPayload(t.name);
                 mark("sent");
+                sayTile(t.title + " - sent " + n + " bytes");
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
             } catch (err) {
                 mark("failed");
-                print(t.title + ": " + ((err && err.message) || err), "LOG-ERROR");
+                const message = String((err && err.message) || err);
+                sayTile(t.title + " - failed: " + message);
+                print(t.title + ": " + message, "LOG-ERROR");
             }
         });
         wrap.appendChild(a);

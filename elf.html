@@ -149,6 +149,12 @@ function setState(p, state) {
     if (ART && p._img) p._img.src = art(p.key, state === "sending" ? "sending"
                                               : state === "sent" ? "sent"
                                               : state === "failed" ? "failed" : "default");
+    if (p._label) {
+        p._label.textContent = p.title + (state === "sending" ? " - sending ELF..."
+                                      : state === "sent" ? " - sent"
+                                      : state === "failed" ? " - failed"
+                                      : "");
+    }
 }
 async function launch(p) {
 
@@ -214,6 +220,7 @@ async function checkElfldr() {
                 sp.textContent = p.description;
                 a.appendChild(b);
                 a.appendChild(sp);
+                p._label = b;
             }
             p._tile = a;
             a.addEventListener("click", function (e) { e.preventDefault(); launch(p); });
