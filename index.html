@@ -424,6 +424,14 @@ async function run() {
     if (!(await confirmPayloadLoader()))
         print("elfldr was not confirmed yet; opening the payload menu anyway", "LOG-WARN");
     const payloadView = new URLSearchParams(location.search).get("payloads") === "1";
+    if (!payloadView && window.__elfldrUp) {
+        // If the console was already jailbroken, reopen the normal URL by
+        // taking the user straight to the payload document. This keeps the
+        // exploit page from being run a second time after a browser reopen.
+        print("elfldr already running - opening payload page without re-jailbreaking", "LOG-SUCCESS");
+        location.replace("./index.html?payloads=1&log=0");
+        return;
+    }
     if (!payloadView) {
         // Give the payload menu a fresh WebKit document after the exploit. On
         // the next load main.js sees elfldr already listening and reuses it,
