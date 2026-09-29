@@ -46,6 +46,15 @@
       overflow-y: auto;
   }
   body.payload-mode #console > div:not(.relapse-payload-screen) { padding: 1px 12px; }
+  body.payload-only-mode #console > div:not(.relapse-payload-screen) { display: none; }
+  body.payload-only-mode #console { padding: 0; overflow: hidden; }
+  body.payload-only-mode .relapse-payload-screen {
+      min-height: 100vh;
+      margin-top: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+  }
   .relapse-payload-screen {
       margin-top: 10px;
       background: #0c0c0f;
@@ -71,6 +80,9 @@
       padding: 0 32px 32px;
       box-sizing: border-box;
       align-content: start;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
   }
   .relapse-payload-tile {
       display: block;
@@ -278,7 +290,7 @@ function buildPayloadMenu() {
     }
     if (!tiles.length) return print("no payload list (payloads.js missing)", "LOG-ERROR");
 
-    document.body.classList.add("payload-mode");
+    document.body.classList.add("payload-mode", "payload-only-mode");
     const screen = document.createElement("section");
     screen.id = "relapse-payload-screen";
     screen.className = "relapse-payload-screen";
