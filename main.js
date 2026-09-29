@@ -1855,8 +1855,11 @@ async function main(userlandRW, wkOnly = false) {
     ports += "9021";
   }
 
-  document.getElementById("top-bar-text").innerHTML =
-    `Listening on: <span class="fw-bold">${ip.ip}</span> (port: ${ports}) (${ip.name})`;
+  const topBarText = document.getElementById("top-bar-text");
+  if (topBarText) {
+    topBarText.innerHTML =
+      `Listening on: <span class="fw-bold">${ip.ip}</span> (port: ${ports}) (${ip.name})`;
+  }
 
   let queue = [];
 
