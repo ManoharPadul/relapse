@@ -238,6 +238,20 @@ function buildPayloadMenu() {
                     ? " (runs in background; no page opens)" : "";
                 sayTile(t.title + " - sent " + n + " bytes" + note);
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
+                if (t.key === "pldmgr" && typeof window.__probeLocalPort === "function") {
+                    let running = false;
+                    for (let attempt = 0; attempt < 8 && !running; attempt++) {
+                        await new Promise((resolve) => setTimeout(resolve, 500));
+                        try { running = await window.__probeLocalPort(8084); } catch (probeError) { running = false; }
+                    }
+                    if (running) {
+                        sayTile(t.title + " - sent " + n + " bytes; server running on :8084");
+                        print("pldmgr: server is listening on 127.0.0.1:8084", "LOG-SUCCESS");
+                    } else {
+                        sayTile(t.title + " - sent " + n + " bytes; no server on :8084");
+                        print("pldmgr: ELF sent, but port 8084 is not listening", "LOG-ERROR");
+                    }
+                }
             } catch (err) {
                 mark("failed");
                 const message = String((err && err.message) || err);

@@ -1044,6 +1044,14 @@ async function main(userlandRW, wkOnly = false) {
         await chain.syscall(SYS_CLOSE, sock);
         return sent;
       };
+      window.__probeLocalPort = async function (port) {
+        const sock = (await chain.syscall(SYS_SOCKET, AF_INET, SOCK_STREAM, 0)).low << 0;
+        if (sock < 0) return false;
+        build_addr(p, sendAddr, AF_INET, htons(port), 0x0100007f);
+        const rv = (await chain.syscall(SYS_CONNECT, sock, sendAddr, 0x10)).low << 0;
+        await chain.syscall(SYS_CLOSE, sock);
+        return rv >= 0;
+      };
       await log(
         krw.elfldr
           ? "kernel chain complete; elfldr is up on 127.0.0.1:9021"
