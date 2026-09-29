@@ -1000,6 +1000,10 @@ async function main(userlandRW, wkOnly = false) {
     return rv >= 0;
   };
 
+  // Do not enter the legacy payloads-view loop in direct-reuse mode. The
+  // custom relapse page supplies its own menu and only needs these helpers.
+  if (wkOnly) return;
+
   if (!wkOnly) {
     var krw;
     if (typeof runAioExploit === "function") {
