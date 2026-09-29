@@ -105,22 +105,30 @@ self.addEventListener("fetch", function (event) {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.indexOf("/api/") !== -1 || url.pathname.indexOf("/log/") !== -1) return;
 
+  var refreshOnline = request.mode === "navigate"
+    || /\/(?:payloads|sw)\.js$/.test(url.pathname);
+  var fromNetwork = function () {
+    return fetch(request, { cache: "no-store" }).then(function (response) {
+      if (response.ok && response.type === "basic") {
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(request, response.clone());
+        });
+      }
+      return response;
+    });
+  };
+  var fromCache = function () {
+    return caches.match(request, { ignoreSearch: true });
+  };
+
   event.respondWith(
-    caches.match(request, { ignoreSearch: true }).then(function (cached) {
-      if (cached) return cached;
-      return fetch(request).then(function (response) {
-        if (response.ok && response.type === "basic") {
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(request, response.clone());
-          });
-        }
-        return response;
-      }).catch(function () {
-        if (request.mode === "navigate") {
-          return caches.match("./index.html", { ignoreSearch: true });
-        }
-        return Response.error();
-      });
+    (refreshOnline ? fromNetwork().catch(fromCache) : fromCache().then(function (cached) {
+      return cached || fromNetwork();
+    })).catch(function () {
+      if (request.mode === "navigate") {
+        return caches.match("./index.html", { ignoreSearch: true });
+      }
+      return Response.error();
     })
   );
 });
