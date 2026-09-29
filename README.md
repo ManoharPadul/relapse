@@ -21,7 +21,7 @@ so it does not work on GitHub Pages - use the run page's own menu there.
 
 ## Offline browser cache
 
-The main page prepares cache bundle **v20 before starting the exploit**. It
+The main page prepares cache bundle **v21 before starting the exploit**. It
 verifies that the service worker is active, downloads the complete static
 frontend, firmware offsets, kernel data, and supported payload ELFs, and writes
 an offline-ready marker only after every item succeeds. A later launch can
