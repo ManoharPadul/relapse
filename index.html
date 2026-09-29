@@ -59,6 +59,9 @@
       margin-top: 10px;
       background: #0c0c0f;
       color: #fff;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
       -webkit-backface-visibility: hidden;
@@ -66,21 +69,6 @@
       font: 16px/1.35 Arial, sans-serif;
       white-space: normal;
       word-break: normal;
-  }
-  /* Build the complete view before revealing it. This mirrors Slopkit's
-     app-view/selected flow and avoids PS5 WebKit painting text only after a
-     hover or a second navigation. */
-  .relapse-payload-screen.relapse-payload-hidden {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-  }
-  .relapse-payload-screen.relapse-payload-visible {
-      display: grid !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
   }
   .relapse-payload-header {
       box-sizing: border-box;
@@ -395,6 +383,7 @@ async function establishUserlandPrimitive() {
 async function run() {
     const rejection = window.firmware.rejection();
     if (rejection) throw new Error(rejection);
+    const payloadView = new URLSearchParams(location.search).get("payloads") === "1";
 
     await ensureOfflineCache();
     await offsetsReady;
@@ -408,7 +397,9 @@ async function run() {
     await import("./exploit.js");
 
     // main() prepares the ROP worker and then drives the kernel chain.
-    await main(p);
+    // A payload-page reload is sender-only. Never let a missed port probe
+    // fall through into the kernel exploit a second time.
+    await main(p, payloadView);
 
     // Draw the payload menu HERE rather than handing off to elf.html.
     //
@@ -423,7 +414,6 @@ async function run() {
     if (typeof window.__sendPayload !== "function") return;
     if (!(await confirmPayloadLoader()))
         print("elfldr was not confirmed yet; opening the payload menu anyway", "LOG-WARN");
-    const payloadView = new URLSearchParams(location.search).get("payloads") === "1";
     if (!payloadView && window.__elfldrUp) {
         // If the console was already jailbroken, reopen the normal URL by
         // taking the user straight to the payload document. This keeps the
@@ -444,7 +434,7 @@ async function run() {
     buildPayloadMenu();
 }
 
-/** Tiles are PNGs: this browser lays text tiles out correctly and paints no glyphs. */
+/** Plain text cards are painted in their final visible layout for PS5 WebKit. */
 function buildPayloadMenu() {
     if (document.getElementById("relapse-payload-screen")) return;
     const tiles = (window.PAYLOAD_TILES || []).slice();
@@ -460,7 +450,7 @@ function buildPayloadMenu() {
 
     const screen = document.createElement("section");
     screen.id = "relapse-payload-screen";
-    screen.className = "relapse-payload-screen relapse-payload-hidden";
+    screen.className = "relapse-payload-screen";
     const header = document.createElement("div");
     header.className = "relapse-payload-header";
     header.innerHTML = '<h2>PS5 Relapse Payloads</h2>'
@@ -518,15 +508,14 @@ function buildPayloadMenu() {
         });
         wrap.appendChild(a);
     }
+    // Apply the final view state before inserting the screen. Do not insert a
+    // display:none/opacity:0 subtree: PS5 WebKit can leave its text unpainted
+    // until a hover or focus event.
+    document.body.classList.add("payload-mode", "payload-only-mode");
     document.getElementById("console").appendChild(screen);
-    // Match Slopkit: the complete view is already in the DOM before it is
-    // selected. Force layout while hidden, then reveal it in one transaction.
     void screen.offsetHeight;
     void wrap.offsetHeight;
-    document.body.classList.add("payload-mode", "payload-only-mode");
     void document.getElementById("console").offsetHeight;
-    screen.classList.remove("relapse-payload-hidden");
-    screen.classList.add("relapse-payload-visible");
     screen.style.webkitTransform = "translateZ(0)";
     screen.style.transform = "translateZ(0)";
     void screen.offsetHeight;
