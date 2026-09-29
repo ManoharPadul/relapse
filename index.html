@@ -267,6 +267,25 @@ async function ensureOfflineCache() {
     });
 }
 
+async function confirmPayloadLoader() {
+    const wasUp = !!window.__elfldrUp;
+    if (typeof window.__probeLocalPort !== "function") return wasUp;
+
+    // The kernel handoff can return a fraction before elfldr has finished
+    // binding 9021. Recheck briefly instead of making the first-run menu wait
+    // for a close/reopen, which is what used to make it appear.
+    for (let attempt = 0; attempt < 6; attempt++) {
+        try {
+            if (await window.__probeLocalPort(9021)) {
+                window.__elfldrUp = true;
+                return true;
+            }
+        } catch (e) { /* the next probe may succeed while elfldr starts */ }
+        await sleep(250);
+    }
+    return wasUp;
+}
+
 // main.js logs progress through window.jb when it is present.
 window.jb = { mark: (tag, detail) => print(detail ? tag + " " + detail : tag, "LOG-INFO") };
 
@@ -347,7 +366,10 @@ async function run() {
     // that runs code AND can route back to the console.
     //
     // Navigating away would destroy the primitives with the document, so we stay put.
-    if (!window.__elfldrUp || typeof window.__sendPayload !== "function") return;
+    if (typeof window.__sendPayload !== "function") return;
+    if (!(await confirmPayloadLoader()))
+        print("elfldr was not confirmed yet; opening the payload menu anyway", "LOG-WARN");
+    await sleep(0); // give WebKit one paint turn before building the first menu
     buildPayloadMenu();
 }
 
@@ -373,7 +395,9 @@ function buildPayloadMenu() {
     header.className = "relapse-payload-header";
     header.innerHTML = '<h2>PS5 Relapse Payloads</h2>'
         + '<div class="relapse-payload-byline">By Manohar Padul</div>'
-        + '<div class="eyebrow" id="relapse-payload-status">ELF loader ready on console port 9021</div>'
+        + '<div class="eyebrow" id="relapse-payload-status">'
+        + (window.__elfldrUp ? 'ELF loader ready on console port 9021' : 'Waiting for ELF loader on console port 9021')
+        + '</div>'
         + '<p>Select a payload to send it to the ELF loader.</p>';
     const wrap = document.createElement("div");
     wrap.className = "relapse-payload-grid";
