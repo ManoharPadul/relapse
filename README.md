@@ -5,7 +5,7 @@ PS5 WebKit + kernel exploit chain (relapse / aio), firmware **7.00 - 13.60**.
 Retail and testkit build. Devkits want the [relapse-dev](https://github.com/soniciso1/relapse-dev) build instead.
 
 Open the page on the console and let it run. A successful run draws the payload menu
-in place and sends each ELF through the console'"'"'s own syscalls to `127.0.0.1:9021`,
+in place and sends each ELF through the console's own syscalls to `127.0.0.1:9021`,
 so no server-side support is needed and this works from any static host.
 
 Supported: 7.00, 7.01, 7.20, 7.40, 7.60, 7.61, 8.00, 8.20, 8.40, 8.60, 9.00, 9.20,
@@ -17,4 +17,13 @@ have to be read out of.
 
 `elf.html` is a standalone payload menu for the already-jailbroken case. It needs a
 host that runs code and can reach the console (`api/` ships PHP and node handlers),
-so it does not work on GitHub Pages - use the run page'"'"'s own menu there.
+so it does not work on GitHub Pages - use the run page's own menu there.
+
+## Offline browser cache
+
+The main page installs `sw.js` on the first successful online visit. After the
+page finishes loading once, revisit the same origin to run from the cached
+static files and payloads. Clearing the PS5 browser data removes the cache and
+requires one more online visit.
+
+The published site is `https://manoharpadul.github.io/relapse/`.

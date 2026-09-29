@@ -235,5 +235,16 @@ function buildPayloadMenu() {
 run().catch(reportFailure);
 </script>
 
+<script>
+/* Install the offline cache after the first online visit. The exploit itself
+   remains in this document; the worker only makes the static files available
+   on later launches. */
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
+    });
+}
+</script>
+
 </body>
 </html>
