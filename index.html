@@ -383,7 +383,6 @@ async function establishUserlandPrimitive() {
 async function run() {
     const rejection = window.firmware.rejection();
     if (rejection) throw new Error(rejection);
-    const payloadView = new URLSearchParams(location.search).get("payloads") === "1";
 
     await ensureOfflineCache();
     await offsetsReady;
@@ -396,10 +395,9 @@ async function run() {
     // WebKit bug depends on is sensitive to what is sitting there.
     await import("./exploit.js");
 
-    // main() prepares the ROP worker and then drives the kernel chain.
-    // A payload-page reload is sender-only. Never let a missed port probe
-    // fall through into the kernel exploit a second time.
-    await main(p, payloadView);
+    // main() probes port 9021 first. If elfldr is already running it switches
+    // to sender-only mode; otherwise it performs the jailbreak once.
+    await main(p);
 
     // Draw the payload menu HERE rather than handing off to elf.html.
     //
@@ -410,26 +408,13 @@ async function run() {
     // exploit code, so it has to ask the host to open the socket, which needs a server
     // that runs code AND can route back to the console.
     //
-    // Navigating away would destroy the primitives with the document, so we stay put.
+    // Keep this document alive: it owns the exploit primitives and payload sender.
     if (typeof window.__sendPayload !== "function") return;
     if (!(await confirmPayloadLoader()))
         print("elfldr was not confirmed yet; opening the payload menu anyway", "LOG-WARN");
-    if (!payloadView && window.__elfldrUp) {
-        // If the console was already jailbroken, reopen the normal URL by
-        // taking the user straight to the payload document. This keeps the
-        // exploit page from being run a second time after a browser reopen.
-        print("elfldr already running - opening payload page without re-jailbreaking", "LOG-SUCCESS");
-        location.replace("./index.html?payloads=1&log=0");
-        return;
-    }
-    if (!payloadView) {
-        // Give the payload menu a fresh WebKit document after the exploit. On
-        // the next load main.js sees elfldr already listening and reuses it,
-        // so this is a UI refresh, not a second jailbreak.
-        print("jailbreak complete - opening fresh payload page", "LOG-SUCCESS");
-        location.replace("./index.html?payloads=1&log=0");
-        return;
-    }
+    print(window.__elfldrUp
+        ? "elfldr is ready - opening payload menu without re-jailbreaking"
+        : "jailbreak complete - opening payload menu", "LOG-SUCCESS");
     await sleep(0); // give WebKit one paint turn before building the first menu
     buildPayloadMenu();
 }
