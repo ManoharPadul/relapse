@@ -4,6 +4,9 @@ window.PAYLOAD_TILES = [
     { title: "ps5-kstuff", description: "Kernel support payload and FPKG enabler.", name: "kstuff.elf", key: "kstuff" },
     { title: "ftpsrv", description: "FTP server. Runs on port 2121.", name: "ftpsrv-ps5.elf", key: "ftp" },
     { title: "klogsrv", description: "Kernel log server. Runs on port 3232.", name: "klogsrv-ps5.elf", key: "klog" },
-    { title: "websrv", description: "Homebrew web server. Runs on port 8080.", name: "websrv-ps5.elf", key: "web" }
+    { title: "websrv", description: "Homebrew web server. Runs on port 8080.", name: "websrv-ps5.elf", key: "web" },
+    { title: "pldmgr", description: "pldmgr payload.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
+    { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
+    { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false }
 ];
 window.PAYLOAD_ART = { dir: "ui/", pfx: "btn-", on: true };

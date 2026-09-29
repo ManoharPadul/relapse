@@ -200,7 +200,7 @@ function buildPayloadMenu() {
         a.style.cssText = "display:block;border-radius:1.25rem;text-decoration:none;"
             + "color:#e8eaed;font:15px system-ui,sans-serif";
         let img = null;
-        if (art.on) {
+        if (art.on && t.art !== false) {
             img = document.createElement("img");
             img.width = 626; img.height = 104; img.alt = t.title;
             img.src = artSrc(t.key, "default");

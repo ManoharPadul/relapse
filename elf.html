@@ -96,7 +96,10 @@ var PAYLOADS  = [
     { title: "ps5-kstuff", description: "Kernel support payload and FPKG enabler.", name: "kstuff.elf", key: "kstuff" },
     { title: "ftpsrv", description: "FTP server. Runs on port 2121.", name: "ftpsrv-ps5.elf", key: "ftp" },
     { title: "klogsrv", description: "Kernel log server. Runs on port 3232.", name: "klogsrv-ps5.elf", key: "klog" },
-    { title: "websrv", description: "Homebrew web server. Runs on port 8080.", name: "websrv-ps5.elf", key: "web" }
+    { title: "websrv", description: "Homebrew web server. Runs on port 8080.", name: "websrv-ps5.elf", key: "web" },
+    { title: "pldmgr", description: "pldmgr payload.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
+    { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
+    { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false }
 ];
 
 var msgEl = document.getElementById("msg");
@@ -196,7 +199,7 @@ async function checkElfldr() {
             a.className = "tile";
             a.href = "#";
             a.tabIndex = idx + 1;
-            if (ART) {
+            if (ART && p.art !== false) {
                 /* The PNG is the whole button - title, description and attribution are
                    baked into it by tools/make_payload_buttons.py. */
                 var im = document.createElement("img");
