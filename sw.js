@@ -1,4 +1,4 @@
-const CACHE_NAME = "ps5-offline-v1";
+const CACHE_NAME = "ps5-offline-v2";
 
 const STATIC_ASSETS = [
   "./",
