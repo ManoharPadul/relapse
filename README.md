@@ -2,7 +2,7 @@
 
 PS5 WebKit + kernel exploit chain (relapse / aio), firmware **7.00 - 13.60**.
 
-Retail and testkit build. Devkits want the [relapse-dev](https://github.com/soniciso1/relapse-dev) build instead.
+Retail and testkit build. Devkits want the relapse-dev build instead.
 
 Open the page on the console and let it run. A successful run draws the payload menu
 in place and sends each ELF through the console's own syscalls to `127.0.0.1:9021`,
