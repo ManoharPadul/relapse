@@ -7,7 +7,6 @@ window.PAYLOAD_TILES = [
     { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052", art: false },
     { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
     { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
-    { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false },
-    { title: "CheatRunner v0.17", description: "Local cheat dashboard. Opens port 9999.", name: "CheatRunner.elf", key: "cheatrunner", art: false }
+    { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false }
 ];
 window.PAYLOAD_ART = { dir: "ui/", pfx: "btn-", on: true };
