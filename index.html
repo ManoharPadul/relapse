@@ -67,6 +67,21 @@
       white-space: normal;
       word-break: normal;
   }
+  /* Build the complete view before revealing it. This mirrors Slopkit's
+     app-view/selected flow and avoids PS5 WebKit painting text only after a
+     hover or a second navigation. */
+  .relapse-payload-screen.relapse-payload-hidden {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+  }
+  .relapse-payload-screen.relapse-payload-visible {
+      display: grid !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+  }
   .relapse-payload-header {
       box-sizing: border-box;
       min-height: 112px;
@@ -115,10 +130,40 @@
   .relapse-payload-tile.busy { opacity: .5; pointer-events: none; }
   .relapse-payload-tile.sent { border: 2px solid #47c76a; }
   .relapse-payload-tile.failed { border: 2px solid #e74856; }
-  .relapse-payload-title { display: block; margin: 0; color: #fff; font-size: 21px; font-weight: 800; }
-  .relapse-payload-title { -webkit-text-fill-color: #fff; }
-  .relapse-payload-description { display: block; margin: 0; color: #ccc; -webkit-text-fill-color: #ccc; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .relapse-payload-info { display: block; margin: 0; color: #999; -webkit-text-fill-color: #999; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .relapse-payload-title {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      margin: 0;
+      color: #fff !important;
+      -webkit-text-fill-color: #fff;
+      font-size: 21px;
+      font-weight: 800;
+  }
+  .relapse-payload-description {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      margin: 0;
+      color: #ccc !important;
+      -webkit-text-fill-color: #ccc;
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+  .relapse-payload-info {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      margin: 0;
+      color: #999 !important;
+      -webkit-text-fill-color: #999;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
   .relapse-payload-tile:hover .relapse-payload-title,
   .relapse-payload-tile:focus .relapse-payload-title { color: #202020; }
   .relapse-payload-tile:hover .relapse-payload-description,
@@ -396,10 +441,9 @@ function buildPayloadMenu() {
     }
     if (!tiles.length) return print("no payload list (payloads.js missing)", "LOG-ERROR");
 
-    document.body.classList.add("payload-mode", "payload-only-mode");
     const screen = document.createElement("section");
     screen.id = "relapse-payload-screen";
-    screen.className = "relapse-payload-screen";
+    screen.className = "relapse-payload-screen relapse-payload-hidden";
     const header = document.createElement("div");
     header.className = "relapse-payload-header";
     header.innerHTML = '<h2>PS5 Relapse Payloads</h2>'
@@ -458,16 +502,28 @@ function buildPayloadMenu() {
         wrap.appendChild(a);
     }
     document.getElementById("console").appendChild(screen);
-    // PS5 WebKit can defer painting dynamically-added text until a hover
-    // invalidates the card. Force one layout/paint while keeping the screen
-    // composited so the labels are visible on first render.
+    // Match Slopkit: the complete view is already in the DOM before it is
+    // selected. Force layout while hidden, then reveal it in one transaction.
     void screen.offsetHeight;
-    screen.style.visibility = "hidden";
-    void screen.offsetHeight;
-    screen.style.visibility = "visible";
+    void wrap.offsetHeight;
+    document.body.classList.add("payload-mode", "payload-only-mode");
+    void document.getElementById("console").offsetHeight;
+    screen.classList.remove("relapse-payload-hidden");
+    screen.classList.add("relapse-payload-visible");
     screen.style.webkitTransform = "translateZ(0)";
     screen.style.transform = "translateZ(0)";
     void screen.offsetHeight;
+    setTimeout(() => {
+        void screen.offsetHeight;
+        const first = wrap.firstElementChild;
+        const firstTitle = first && first.querySelector(".relapse-payload-title");
+        if (firstTitle) {
+            const style = getComputedStyle(firstTitle);
+            print("payload view visible: title display=" + style.display
+                + " visibility=" + style.visibility
+                + " color=" + style.color, "LOG-DEBUG");
+        }
+    }, 0);
     // Do not focus the first tile: EtaHEN is first in the list and would look
     // permanently selected whenever the menu is opened.
     print("elfldr is up - pick a payload", "LOG-SUCCESS");
