@@ -130,25 +130,6 @@
   .relapse-payload-tile.busy { opacity: .5; pointer-events: none; }
   .relapse-payload-tile.sent { border: 2px solid #47c76a; }
   .relapse-payload-tile.failed { border: 2px solid #e74856; }
-  .relapse-payload-art-tile {
-      padding: 0;
-      border: 0;
-      border-radius: 20px;
-      background: transparent;
-      overflow: hidden;
-  }
-  .relapse-payload-art-tile:hover,
-  .relapse-payload-art-tile:focus { background: #2b2c31; }
-  .relapse-payload-art-tile.sent { border: 0; outline: 3px solid #47c76a; outline-offset: 2px; }
-  .relapse-payload-art-tile.failed { border: 0; outline: 3px solid #e74856; outline-offset: 2px; }
-  .relapse-payload-art {
-      display: block !important;
-      width: 100%;
-      height: auto;
-      max-width: 626px;
-      margin: 0 auto;
-      border-radius: 20px;
-  }
   .relapse-payload-title {
       display: block !important;
       visibility: visible !important;
@@ -306,17 +287,17 @@ async function ensureOfflineCache() {
 
     setCacheStatus("Preparing the complete offline bundle before jailbreak...", "LOG-INFO");
     print("preparing the complete offline bundle before jailbreak", "LOG-INFO");
-    let registration = await navigator.serviceWorker.register("./sw.js?v=24", { scope: "./" });
+    let registration = await navigator.serviceWorker.register("./sw.js?v=23", { scope: "./" });
     try { await registration.update(); } catch (e) { /* an already-current worker is fine */ }
 
     let worker = null;
     for (let attempt = 0; attempt < 40; attempt++) {
         registration = await navigator.serviceWorker.ready;
         worker = registration.active;
-        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=24") !== -1) break;
+        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=23") !== -1) break;
         await sleep(250);
     }
-    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=24") === -1) {
+    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=23") === -1) {
         throw new Error("offline cache worker did not activate");
     }
 
@@ -451,9 +432,9 @@ function buildPayloadMenu() {
     if (document.getElementById("relapse-payload-screen")) return;
     const tiles = (window.PAYLOAD_TILES || []).slice();
     const fallbackTiles = [
-        { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052" },
-        { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns" },
-        { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus" }
+        { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052", art: false },
+        { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
+        { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false }
     ];
     for (const fallback of fallbackTiles) {
         if (!tiles.some((tile) => tile.name === fallback.name)) tiles.push(fallback);
@@ -476,70 +457,34 @@ function buildPayloadMenu() {
     screen.appendChild(header);
     screen.appendChild(wrap);
 
-    const artPath = (tile, state) => {
-        const art = window.PAYLOAD_ART;
-        if (!art || art.on === false || tile.art === false) return "";
-        return String(art.dir || "ui/") + String(art.pfx || "btn-")
-            + tile.key + "-" + state + ".png";
-    };
-    // Slopkit preloads the bitmap states. PS5 WebKit reliably paints these
-    // images, while freshly-created text glyphs may remain blank until hover.
-    for (const t of tiles) {
-        for (const state of ["default", "sending", "sent", "failed"]) {
-            const src = artPath(t, state);
-            if (src) { const preload = new Image(); preload.src = src; }
-        }
-    }
-
     for (const t of tiles) {
         const a = document.createElement("button");
         a.type = "button";
         a.className = "relapse-payload-tile";
-        a.setAttribute("aria-label", t.title);
-        let info = null;
-        const defaultArt = artPath(t, "default");
-        if (defaultArt) {
-            a.classList.add("relapse-payload-art-tile");
-            const image = document.createElement("img");
-            image.className = "relapse-payload-art";
-            image.width = 626;
-            image.height = 104;
-            image.alt = t.title;
-            image.src = defaultArt;
-            a.__relapseArt = image;
-            a.appendChild(image);
-        } else {
-            const title = document.createElement("span");
-            title.className = "relapse-payload-title";
-            title.textContent = t.title;
-            const description = document.createElement("span");
-            description.className = "relapse-payload-description";
-            description.textContent = t.description;
-            info = document.createElement("span");
-            info.className = "relapse-payload-info";
-            info.textContent = t.name + " · port 9021";
-            a.appendChild(title);
-            a.appendChild(description);
-            a.appendChild(info);
-        }
-        const setVisualState = (state) => {
-            const src = artPath(t, state);
-            if (src && a.__relapseArt) a.__relapseArt.src = src;
-        };
+        const title = document.createElement("span");
+        title.className = "relapse-payload-title";
+        title.textContent = t.title;
+        const description = document.createElement("span");
+        description.className = "relapse-payload-description";
+        description.textContent = t.description;
+        const info = document.createElement("span");
+        info.className = "relapse-payload-info";
+        info.textContent = t.name + " · port 9021";
+        a.appendChild(title);
+        a.appendChild(description);
+        a.appendChild(info);
         a.addEventListener("click", async (e) => {
             e.preventDefault();
             a.classList.remove("sent", "failed");
             a.classList.add("busy");
-            setVisualState("sending");
-            if (info) info.textContent = "Sending ELF to port 9021...";
+            info.textContent = "Sending ELF to port 9021...";
             document.getElementById("relapse-payload-status").textContent = "Sending " + t.title + "...";
             print(t.title + ": sending ...", "LOG-INFO");
             try {
                 const n = await window.__sendPayload(t.name);
                 a.classList.remove("busy");
                 a.classList.add("sent");
-                setVisualState("sent");
-                if (info) info.textContent = "Sent " + n + " bytes · port 9021";
+                info.textContent = "Sent " + n + " bytes · port 9021";
                 document.getElementById("relapse-payload-status").textContent =
                     t.key.indexOf("pldmgr") === 0 || t.key === "plk"
                         ? "PLK Manager sent · open PS5-IP:8084"
@@ -548,9 +493,8 @@ function buildPayloadMenu() {
             } catch (err) {
                 a.classList.remove("busy");
                 a.classList.add("failed");
-                setVisualState("failed");
                 const message = String((err && err.message) || err);
-                if (info) info.textContent = "Failed: " + message;
+                info.textContent = "Failed: " + message;
                 document.getElementById("relapse-payload-status").textContent = t.title + " failed";
                 print(t.title + ": " + message, "LOG-ERROR");
             }

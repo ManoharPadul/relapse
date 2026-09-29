@@ -1,5 +1,5 @@
-const CACHE_NAME = "ps5-offline-v24";
-const OFFLINE_MARKER = "./__offline_ready_v24";
+const CACHE_NAME = "ps5-offline-v23";
+const OFFLINE_MARKER = "./__offline_ready_v23";
 
 const STATIC_ASSETS = [
   "./",
@@ -67,22 +67,6 @@ const STATIC_ASSETS = [
   "./ui/btn-web-failed.png",
   "./ui/btn-web-sending.png",
   "./ui/btn-web-sent.png",
-  "./ui/btn-pldmgr-v052-default.png",
-  "./ui/btn-pldmgr-v052-failed.png",
-  "./ui/btn-pldmgr-v052-sending.png",
-  "./ui/btn-pldmgr-v052-sent.png",
-  "./ui/btn-nanodns-default.png",
-  "./ui/btn-nanodns-failed.png",
-  "./ui/btn-nanodns-sending.png",
-  "./ui/btn-nanodns-sent.png",
-  "./ui/btn-shadowmountplus-default.png",
-  "./ui/btn-shadowmountplus-failed.png",
-  "./ui/btn-shadowmountplus-sending.png",
-  "./ui/btn-shadowmountplus-sent.png",
-  "./ui/btn-game-compressor-default.png",
-  "./ui/btn-game-compressor-failed.png",
-  "./ui/btn-game-compressor-sending.png",
-  "./ui/btn-game-compressor-sent.png",
   "./ui/hdr-payloads.png"
 ];
 
