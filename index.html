@@ -308,10 +308,7 @@ function buildPayloadMenu() {
         { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052", art: false },
         { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
         { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
-        { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false },
-        { title: "elf-arsenal", description: "ELF Arsenal payload.", name: "elf-arsenal.elf", key: "elf-arsenal", art: false },
-        { title: "gdbsrv", description: "GDB server. Runs on port 2159.", name: "gdbsrv-ps5.elf", key: "gdb", art: false },
-        { title: "shsrv", description: "Telnet shell server. Runs on port 2323.", name: "shsrv-ps5.elf", key: "shsrv", art: false }
+        { title: "Game Compressor 1.0.4 · 13.60", description: "Relapse PS5 SDK build. Opens port 5910.", name: "game-compressor.elf", key: "game-compressor", art: false }
     ];
     for (const fallback of fallbackTiles) {
         if (!tiles.some((tile) => tile.name === fallback.name)) tiles.push(fallback);
