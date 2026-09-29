@@ -11,7 +11,14 @@
   /* The log is shown by default so the console screen is readable (you cannot
      add a query flag when the User Guide redirects straight in). Pass ?log=0 to
      hide it. */
-  #console { display: none; }
+  /* Keep the console in a painted block layout so PS5 WebKit paints payload
+     text immediately instead of waiting for focus. */
+  #console { display: block; }
+  body:not(.verbose):not(.payload-mode) #console {
+      visibility: hidden;
+      height: 0;
+      overflow: hidden;
+  }
   body.verbose #console {
       display: block;
       box-sizing: border-box;
@@ -46,7 +53,13 @@
       overflow-y: auto;
   }
   body.payload-mode #console > div:not(.relapse-payload-screen) { padding: 1px 12px; }
-  body.payload-only-mode #console > div:not(.relapse-payload-screen) { display: none; }
+  body.payload-only-mode #console > div:not(.relapse-payload-screen) {
+      visibility: hidden;
+      height: 0;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+  }
   body.payload-only-mode #console { padding: 0; overflow: hidden; }
   body.payload-only-mode .relapse-payload-screen {
       min-height: 100vh;
@@ -491,8 +504,8 @@ function buildPayloadMenu() {
         wrap.appendChild(a);
     }
     // Apply the final view state before inserting the screen. Do not insert a
-    // display:none/opacity:0 subtree: PS5 WebKit can leave its text unpainted
-    // until a hover or focus event.
+    // hidden subtree: PS5 WebKit can leave its text unpainted until a hover
+    // or focus event.
     document.body.classList.add("payload-mode", "payload-only-mode");
     document.getElementById("console").appendChild(screen);
     void screen.offsetHeight;
