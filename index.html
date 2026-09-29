@@ -324,17 +324,17 @@ async function ensureOfflineCache() {
 
     setCacheStatus("Preparing the complete offline bundle before jailbreak...", "LOG-INFO");
     print("preparing the complete offline bundle before jailbreak", "LOG-INFO");
-    let registration = await navigator.serviceWorker.register("./sw.js?v=27", { scope: "./" });
+    let registration = await navigator.serviceWorker.register("./sw.js?v=28", { scope: "./" });
     try { await registration.update(); } catch (e) { /* an already-current worker is fine */ }
 
     let worker = null;
     for (let attempt = 0; attempt < 40; attempt++) {
         registration = await navigator.serviceWorker.ready;
         worker = registration.active;
-        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=27") !== -1) break;
+        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=28") !== -1) break;
         await sleep(250);
     }
-    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=27") === -1) {
+    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=28") === -1) {
         throw new Error("offline cache worker did not activate");
     }
 
@@ -467,7 +467,7 @@ async function run() {
 
 /** Plain text cards are painted in their final visible layout for PS5 WebKit. */
 function buildPayloadMenu() {
-    if (document.getElementById("relapse-payload-screen")) return;
+    if (document.getElementById("relapse-payload-frame")) return;
     const tiles = (window.PAYLOAD_TILES || []).slice();
     const fallbackTiles = [
         { title: "PLK Manager v0.5.2 (13.60)", description: "Rebuilt with latest SDK. Open PS5-IP:8084.", name: "pldmgr_v0.5.2.elf", key: "pldmgr-v052", art: false },
@@ -516,14 +516,14 @@ function buildPayloadMenu() {
             a.classList.remove("sent", "failed");
             a.classList.add("busy");
             info.textContent = "Sending ELF to port 9021...";
-            document.getElementById("relapse-payload-status").textContent = "Sending " + t.title + "...";
+            header.querySelector("#relapse-payload-status").textContent = "Sending " + t.title + "...";
             print(t.title + ": sending ...", "LOG-INFO");
             try {
                 const n = await window.__sendPayload(t.name);
                 a.classList.remove("busy");
                 a.classList.add("sent");
                 info.textContent = "Sent " + n + " bytes · port 9021";
-                document.getElementById("relapse-payload-status").textContent =
+                header.querySelector("#relapse-payload-status").textContent =
                     t.key.indexOf("pldmgr") === 0 || t.key === "plk"
                         ? "PLK Manager sent · open PS5-IP:8084"
                         : t.title + " sent to port 9021";
@@ -533,7 +533,7 @@ function buildPayloadMenu() {
                 a.classList.add("failed");
                 const message = String((err && err.message) || err);
                 info.textContent = "Failed: " + message;
-                document.getElementById("relapse-payload-status").textContent = t.title + " failed";
+                header.querySelector("#relapse-payload-status").textContent = t.title + " failed";
                 print(t.title + ": " + message, "LOG-ERROR");
             }
         });
@@ -544,7 +544,21 @@ function buildPayloadMenu() {
     // or focus event.
     document.body.classList.add("payload-mode", "payload-only-mode");
     // Keep the menu outside the scrolling log and its visibility rules.
-    document.body.appendChild(screen);
+    // A fresh rendering document avoids reusing the exploited page's paint
+    // layers. The original document and its sender remain alive throughout.
+    const frame = document.createElement("iframe");
+    frame.id = "relapse-payload-frame";
+    frame.title = "Relapse payload menu";
+    frame.style.cssText = "display:block;width:100%;height:100vh;border:0;background:#0c0c0f";
+    document.body.appendChild(frame);
+    const menuDocument = frame.contentDocument;
+    menuDocument.open();
+    menuDocument.write('<!doctype html><html><head><meta charset="utf-8"><title>Relapse Payloads</title></head><body class="payload-mode payload-only-mode"></body></html>');
+    menuDocument.close();
+    const menuStyle = menuDocument.createElement("style");
+    menuStyle.textContent = document.querySelector("style").textContent;
+    menuDocument.head.appendChild(menuStyle);
+    menuDocument.body.appendChild(screen);
     document.getElementById("console").scrollTop = 0;
     window.scrollTo(0, 0);
     void screen.offsetHeight;
