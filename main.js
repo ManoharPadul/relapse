@@ -1838,7 +1838,14 @@ async function main(userlandRW, wkOnly = false) {
   }
   send_buffer_to_port.sock_addr_store = p.malloc(0x10, 1);
 
-  sessionStorage.removeItem(SESSIONSTORE_ON_LOAD_AUTORUN_KEY);
+  // The standalone relapse page does not load the legacy payloads-view
+  // constant. Keep this cleanup best-effort so sender-only mode can return
+  // directly to the payload menu when elfldr is already running.
+  try {
+    if (typeof SESSIONSTORE_ON_LOAD_AUTORUN_KEY !== "undefined") {
+      sessionStorage.removeItem(SESSIONSTORE_ON_LOAD_AUTORUN_KEY);
+    }
+  } catch (e) {}
 
   let ports = wkOnly || kexpElfldr ? "" : "9020";
   if (is_elfldr_running) {
