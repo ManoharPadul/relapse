@@ -1,4 +1,4 @@
-const CACHE_NAME = "ps5-offline-v11";
+const CACHE_NAME = "ps5-offline-v12";
 
 const STATIC_ASSETS = [
   "./",
@@ -55,9 +55,8 @@ const STATIC_ASSETS = [
   "./payloads/kexp_2026_05_25.bin",
   "./payloads/klogsrv-ps5.elf",
   "./payloads/kstuff.elf",
-  "./payloads/PLK.elf",
   "./payloads/nanodns.elf",
-  "./payloads/pldmgr_v0.5.1.elf",
+  "./payloads/pldmgr_v0.5.2.elf",
   "./payloads/shadowmountplus.elf",
   "./payloads/shsrv-ps5.elf",
   "./payloads/websrv-ps5.elf",
