@@ -234,17 +234,10 @@ function buildPayloadMenu() {
             try {
                 const n = await window.__sendPayload(t.name);
                 mark("sent");
-                if (t.key === "pldmgr") {
-                    sayTile(t.title + " - sent " + n + " bytes; opening local manager...");
-                } else {
-                    sayTile(t.title + " - sent " + n + " bytes");
-                }
+                const note = t.key === "nanodns" || t.key === "shadowmountplus"
+                    ? " (runs in background; no page opens)" : "";
+                sayTile(t.title + " - sent " + n + " bytes" + note);
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
-                if (t.key === "pldmgr") {
-                    print("pldmgr: opening offline manager at http://127.0.0.1:8084", "LOG-INFO");
-                    await new Promise((resolve) => setTimeout(resolve, 1200));
-                    window.location.href = "http://127.0.0.1:8084/";
-                }
             } catch (err) {
                 mark("failed");
                 const message = String((err && err.message) || err);
