@@ -24,20 +24,20 @@ the 13.60 payload set and opens its local service on port 5910.
 
 ## Offline browser cache
 
-The main page installs `sw.js` on the first successful online visit. After the
-page finishes loading once, revisit the same origin to run from the cached
-static files and payloads. Clearing the PS5 browser data removes the cache and
-requires one more online visit.
+The main page prepares cache bundle **v20 before starting the exploit**. It
+verifies that the service worker is active, downloads the complete static
+frontend, firmware offsets, kernel data, and supported payload ELFs, and writes
+an offline-ready marker only after every item succeeds. A later launch can
+therefore check the marker and start the jailbreak from the complete cache
+instead of beginning the exploit while files are still being downloaded.
+
+If cache preparation fails, the jailbreak is stopped and the visible status
+message identifies the cache failure. Clearing PS5 browser data removes the
+cache and requires one more online setup.
 
 The published site is `https://manoharpadul.github.io/relapse/`.
 
 ## Network use
-
-The first cache preparation needs an internet connection. After the page reports
-that the offline cache is ready, the internet can be disabled, but keep the PS5
-connected to the same local Wi-Fi/LAN as the device used to open its services. A
-local network interface is important for the 13.60 chain; disabling Wi-Fi entirely
-can produce the observed `kaslr: no configured interface` or routing failure.
 
 The first cache preparation needs an internet connection. After the page reports
 that the offline cache is ready, the internet can be disabled, but keep the PS5

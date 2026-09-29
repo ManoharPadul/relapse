@@ -210,11 +210,61 @@ function print(message, level) {
     }
 }
 
+function setCacheStatus(message, level) {
+    // Keep the exploit DOM/heap layout unchanged; the existing console carries
+    // progress, while the title remains useful when the log is hidden.
+    document.title = String(message);
+}
+
 function reportFailure(error) {
     const message = String((error && error.message) || error)
         + ((error && error.stack) ? " @" + error.stack : "");
     print("FAILED: " + message, "LOG-ERROR");
+    setCacheStatus("Jailbreak stopped: " + message, "LOG-ERROR");
     try { window.__rep("PAGE-FAIL", message.slice(0, 400)); } catch (e) { /* best effort */ }
+}
+
+async function ensureOfflineCache() {
+    if (!("serviceWorker" in navigator) || !("MessageChannel" in window)) {
+        setCacheStatus("Offline cache verification is unavailable; starting the current bundle.", "LOG-WARN");
+        print("offline cache verification unavailable; starting the current bundle", "LOG-WARN");
+        return;
+    }
+
+    setCacheStatus("Preparing the complete offline bundle before jailbreak...", "LOG-INFO");
+    print("preparing the complete offline bundle before jailbreak", "LOG-INFO");
+    let registration = await navigator.serviceWorker.register("./sw.js?v=20", { scope: "./" });
+    try { await registration.update(); } catch (e) { /* an already-current worker is fine */ }
+
+    let worker = null;
+    for (let attempt = 0; attempt < 40; attempt++) {
+        registration = await navigator.serviceWorker.ready;
+        worker = registration.active;
+        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=20") !== -1) break;
+        await sleep(250);
+    }
+    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=20") === -1) {
+        throw new Error("offline cache worker did not activate");
+    }
+
+    return new Promise((resolve, reject) => {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = (event) => {
+            const data = event.data || {};
+            if (data.type === "offline-progress") {
+                setCacheStatus("Caching offline bundle " + data.done + "/" + data.total + "...", "LOG-INFO");
+                print("offline cache " + data.done + "/" + data.total + " " + data.asset, "LOG-DEBUG");
+            } else if (data.type === "offline-ready") {
+                setCacheStatus("Offline cache verified; starting jailbreak.", "LOG-SUCCESS");
+                print("offline cache verified; starting jailbreak", "LOG-SUCCESS");
+                resolve();
+            } else if (data.type === "offline-error") {
+                reject(new Error("offline cache failed: " + data.error));
+            }
+        };
+        channel.port1.start();
+        worker.postMessage({ type: "prepare-offline" }, [channel.port2]);
+    });
 }
 
 // main.js logs progress through window.jb when it is present.
@@ -273,6 +323,7 @@ async function run() {
     const rejection = window.firmware.rejection();
     if (rejection) throw new Error(rejection);
 
+    await ensureOfflineCache();
     await offsetsReady;
     print("firmware " + window.fw_str, "LOG-INFO");
 
@@ -389,17 +440,6 @@ function buildPayloadMenu() {
 }
 
 run().catch(reportFailure);
-</script>
-
-<script>
-/* Install the offline cache after the first online visit. The exploit itself
-   remains in this document; the worker only makes the static files available
-   on later launches. */
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
-    });
-}
 </script>
 
 </body>

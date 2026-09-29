@@ -2096,4 +2096,7 @@ async function main(userlandRW, wkOnly = false) {
 let fwScript = document.createElement("script");
 document.body.appendChild(fwScript);
 
-fwScript.setAttribute("src", `offsets/${window.fw_str}.js?v=` + Date.now());
+// Keep the URL stable so the service-worker cache can satisfy this request
+// during an offline launch. A timestamp here turns the offsets into a new URL
+// every time and can force WebKit back onto the network.
+fwScript.setAttribute("src", `offsets/${window.fw_str}.js`);

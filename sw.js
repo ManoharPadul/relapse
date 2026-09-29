@@ -1,4 +1,5 @@
-const CACHE_NAME = "ps5-offline-v19";
+const CACHE_NAME = "ps5-offline-v20";
+const OFFLINE_MARKER = "./__offline_ready_v20";
 
 const STATIC_ASSETS = [
   "./",
@@ -69,6 +70,24 @@ const STATIC_ASSETS = [
   "./ui/hdr-payloads.png"
 ];
 
+// These are deliberately listed instead of being cached only after a tile is
+// clicked. The jailbreak is allowed to start only after this complete bundle
+// has been stored, so the first later offline launch cannot miss a payload.
+const OFFLINE_PAYLOADS = [
+  "./payloads/elfldr-ps5-1360.elf",
+  "./payloads/etaHEN.elf",
+  "./payloads/ftpsrv-ps5.elf",
+  "./payloads/game-compressor.elf",
+  "./payloads/kexp_2026_05_25.bin",
+  "./payloads/kstuff.elf",
+  "./payloads/nanodns.elf",
+  "./payloads/pldmgr_v0.5.2.elf",
+  "./payloads/shadowmountplus.elf",
+  "./payloads/websrv-ps5.elf"
+];
+
+const OFFLINE_ASSETS = STATIC_ASSETS.concat(OFFLINE_PAYLOADS);
+
 self.addEventListener("install", function (event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -85,6 +104,46 @@ self.addEventListener("activate", function (event) {
         .map(function (key) { return caches.delete(key); }));
     }).then(function () { return self.clients.claim(); })
   );
+});
+
+self.addEventListener("message", function (event) {
+  if (!event.data || event.data.type !== "prepare-offline") return;
+
+  const port = event.ports && event.ports[0];
+  const reply = function (message) {
+    if (port) port.postMessage(message);
+  };
+
+  event.waitUntil((async function () {
+    const cache = await caches.open(CACHE_NAME);
+    const marker = await cache.match(OFFLINE_MARKER);
+    const present = await Promise.all(OFFLINE_ASSETS.map(function (asset) {
+      return cache.match(asset);
+    }));
+    if (marker && present.every(function (response) { return !!response; })) {
+      reply({ type: "offline-ready", cached: true });
+      return;
+    }
+
+    let done = 0;
+    for (let i = 0; i < OFFLINE_ASSETS.length; i++) {
+      const asset = OFFLINE_ASSETS[i];
+      if (present[i]) {
+        done++;
+        continue;
+      }
+      await cache.add(asset);
+      done++;
+      reply({ type: "offline-progress", asset: asset, done: done, total: OFFLINE_ASSETS.length });
+    }
+
+    await cache.put(OFFLINE_MARKER, new Response("ready", {
+      headers: { "Content-Type": "text/plain" }
+    }));
+    reply({ type: "offline-ready", cached: false });
+  })().catch(function (error) {
+    reply({ type: "offline-error", error: String((error && error.message) || error) });
+  }));
 });
 
 self.addEventListener("fetch", function (event) {
