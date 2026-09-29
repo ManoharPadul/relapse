@@ -4,7 +4,11 @@ if (!navigator.userAgent.includes("PlayStation 5")) {
 }
 
 window.__repseq = 0;
+window.__telemetryEnabled = /(?:^|[?&])(?:trace|telemetry)=1(?:&|$)/.test(
+  location.search,
+);
 window.__rep = function (tag, detail) {
+  if (!window.__telemetryEnabled) return;
   try {
     const t =
       String(tag) + (detail !== undefined && detail !== "" ? " " + detail : "");

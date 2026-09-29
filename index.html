@@ -172,14 +172,41 @@ if (CORE_INSTANCE !== memCoreInstance)
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-var __bseq=0;function __bcn(m){try{new Image().src="log/LT-s"+(++__bseq)+"-"+encodeURIComponent(String(m)).slice(0,400)+"?t="+Date.now();}catch(e){}}
+var __bseq=0;
+function __bcn(m){
+    if (!window.__telemetryEnabled) return;
+    try{new Image().src="log/LT-s"+(++__bseq)+"-"+encodeURIComponent(String(m)).slice(0,400)+"?t="+Date.now();}catch(e){}
+}
+var __logQueue=[];
+var __logFlushScheduled=false;
+function __flushLogs(){
+    __logFlushScheduled=false;
+    var view=document.getElementById("console");
+    if (!view || !__logQueue.length) return;
+    var frag=document.createDocumentFragment();
+    while (__logQueue.length) {
+        var item=__logQueue.shift();
+        var line=document.createElement("div");
+        line.className=item.level || "LOG-LOG";
+        line.textContent=item.message;
+        frag.appendChild(line);
+    }
+    view.appendChild(frag);
+    var screen=document.getElementById("relapse-payload-screen");
+    while (view.children.length - (screen ? 1 : 0) > 600) {
+        var first=view.firstElementChild;
+        if (!first || first === screen) break;
+        first.remove();
+    }
+    if (document.body.classList.contains("verbose")) view.scrollTop=view.scrollHeight;
+}
 function print(message, level) {
-    __bcn(message);   // forward every log line to the beacon logger (sync XHR)
-    const line = document.createElement("div");
-    line.className = level || "LOG-LOG";
-    line.textContent = String(message);
-    const view = document.getElementById("console");
-    if (view) { view.appendChild(line); view.scrollTop = view.scrollHeight; }
+    __bcn(message);
+    __logQueue.push({message:String(message), level:level || "LOG-LOG"});
+    if (!__logFlushScheduled) {
+        __logFlushScheduled=true;
+        requestAnimationFrame(__flushLogs);
+    }
 }
 
 function reportFailure(error) {
@@ -213,7 +240,7 @@ async function establishUserlandPrimitive() {
     await sleep(750);
 
     const carrier = await establishPrimitive({
-        maxAttempts: 0,
+        maxAttempts: 8,
         onEvent(tag, detail, attempt) {
             print((typeof attempt === "number" ? "[" + attempt + "] " : "") + tag
                 + (detail ? " " + detail : ""), "LOG-DEBUG");
