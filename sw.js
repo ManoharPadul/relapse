@@ -1,5 +1,5 @@
-const CACHE_NAME = "ps5-offline-v25";
-const OFFLINE_MARKER = "./__offline_ready_v25";
+const CACHE_NAME = "ps5-offline-v26";
+const OFFLINE_MARKER = "./__offline_ready_v26";
 
 const STATIC_ASSETS = [
   "./",
