@@ -187,7 +187,7 @@ async function run() {
 function buildPayloadMenu() {
     const tiles = (window.PAYLOAD_TILES || []).slice();
     const fallbackTiles = [
-        { title: "pldmgr", description: "pldmgr payload.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
+        { title: "pldmgr", description: "Web manager. Open PS5-IP:8084.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
         { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
         { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
         { title: "game-compressor", description: "Game compressor payload.", name: "game-compressor.elf", key: "game-compressor", art: false },
@@ -250,8 +250,8 @@ function buildPayloadMenu() {
                         sayTile(t.title + " - sent " + n + " bytes; server running on :8084");
                         print("pldmgr: server is listening on 127.0.0.1:8084", "LOG-SUCCESS");
                     } else {
-                        sayTile(t.title + " - sent " + n + " bytes; no server on :8084");
-                        print("pldmgr: ELF sent, but port 8084 is not listening", "LOG-ERROR");
+                        sayTile(t.title + " - sent " + n + " bytes; no loopback on :8084");
+                        print("pldmgr: no loopback listener; try the PS5 IP on port 8084", "LOG-WARN");
                     }
                 }
             } catch (err) {
