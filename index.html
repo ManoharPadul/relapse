@@ -278,6 +278,7 @@ function buildPayloadMenu() {
     const tiles = (window.PAYLOAD_TILES || []).slice();
     const fallbackTiles = [
         { title: "PLK Manager / pldmgr", description: "Web manager. Open PS5-IP:8084.", name: "pldmgr_v0.5.1.elf", key: "pldmgr", art: false },
+        { title: "PLK Manager (Slopkit)", description: "Slopkit manager. Open PS5-IP:8084.", name: "PLK.elf", key: "plk", art: false },
         { title: "nanodns", description: "nanodns payload.", name: "nanodns.elf", key: "nanodns", art: false },
         { title: "shadowmountplus", description: "shadowmountplus payload.", name: "shadowmountplus.elf", key: "shadowmountplus", art: false },
         { title: "game-compressor", description: "Game compressor payload.", name: "game-compressor.elf", key: "game-compressor", art: false },
@@ -333,7 +334,8 @@ function buildPayloadMenu() {
                 a.classList.add("sent");
                 info.textContent = "Sent " + n + " bytes · port 9021";
                 document.getElementById("relapse-payload-status").textContent =
-                    t.key === "pldmgr" ? "PLK Manager sent · open PS5-IP:8084" : t.title + " sent to port 9021";
+                    t.key === "pldmgr" || t.key === "plk"
+                        ? "PLK Manager sent · open PS5-IP:8084" : t.title + " sent to port 9021";
                 print(t.title + ": sent " + n + " bytes to 127.0.0.1:9021", "LOG-SUCCESS");
             } catch (err) {
                 a.classList.remove("busy");
