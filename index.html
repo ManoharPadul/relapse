@@ -53,12 +53,13 @@
       overflow-y: auto;
   }
   body.payload-mode #console > div:not(.relapse-payload-screen) { padding: 1px 12px; }
-  body.payload-only-mode #console > div:not(.relapse-payload-screen) {
-      visibility: hidden;
-      height: 0;
-      overflow: hidden;
-      padding: 0;
-      margin: 0;
+  /* Payload content is never hidden. The exploit log is already moved offscreen
+     below when payload-mode starts, so no visibility rule may suppress cards. */
+  body.payload-only-mode .relapse-payload-screen,
+  body.payload-only-mode .relapse-payload-grid,
+  body.payload-only-mode .relapse-payload-tile,
+  body.payload-only-mode .relapse-payload-art {
+      visibility: visible !important;
   }
   body.payload-only-mode #console { padding: 0; overflow: hidden; }
   body.payload-only-mode .relapse-payload-screen {
