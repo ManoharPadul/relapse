@@ -223,6 +223,40 @@
   }
   .relapse-payload-tile:focus,
   .relapse-payload-tile:hover { outline: 3px solid #8df0ad; }
+  body.payload-only-mode .relapse-payload-screen {
+      padding: 12px 20px 20px;
+      margin: 0 auto;
+      max-width: 1320px;
+      background: #0c0c0f;
+  }
+  .relapse-payload-header {
+      min-height: 0;
+      padding: 0 0 8px;
+      border: 0;
+  }
+  .relapse-payload-heading {
+      display: block;
+      width: 100%;
+      max-width: 1252px;
+      height: auto;
+      margin: 0 auto;
+  }
+  #relapse-payload-status {
+      display: block;
+      margin: 0;
+      min-height: 18px;
+      font: 13px/18px Arial, sans-serif;
+      color: #8df0ad;
+      text-align: center;
+  }
+  .relapse-payload-grid { padding: 0; }
+  .relapse-payload-grid .relapse-payload-tile {
+      border: 0;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: none;
+  }
+  .relapse-payload-tile::before { content: none; }
 </style>
 </head>
 <body>
@@ -338,17 +372,17 @@ async function ensureOfflineCache() {
 
     setCacheStatus("Preparing the complete offline bundle before jailbreak...", "LOG-INFO");
     print("preparing the complete offline bundle before jailbreak", "LOG-INFO");
-    let registration = await navigator.serviceWorker.register("./sw.js?v=29", { scope: "./" });
+    let registration = await navigator.serviceWorker.register("./sw.js?v=30", { scope: "./" });
     try { await registration.update(); } catch (e) { /* an already-current worker is fine */ }
 
     let worker = null;
     for (let attempt = 0; attempt < 40; attempt++) {
         registration = await navigator.serviceWorker.ready;
         worker = registration.active;
-        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=29") !== -1) break;
+        if (worker && worker.state === "activated" && worker.scriptURL.indexOf("sw.js?v=30") !== -1) break;
         await sleep(250);
     }
-    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=29") === -1) {
+    if (!worker || worker.state !== "activated" || worker.scriptURL.indexOf("sw.js?v=30") === -1) {
         throw new Error("offline cache worker did not activate");
     }
 
@@ -504,6 +538,21 @@ function buildPayloadMenu() {
         + (window.__elfldrUp ? 'ELF loader ready on console port 9021' : 'Waiting for ELF loader on console port 9021')
         + '</div>'
         + '<p>Select a payload to send it to the ELF loader.</p>';
+    // Use the same reliable bitmap rendering as the working payload cards.
+    const status = header.querySelector("#relapse-payload-status");
+    header.textContent = "";
+    const heading = document.createElement("img");
+    heading.className = "relapse-payload-heading";
+    heading.alt = "PS5 Relapse — Payloads — By Manohar Padul. Select a payload to send it to the local ELF loader.";
+    heading.width = 1252;
+    heading.height = 144;
+    heading.src = new URL("ui/hdr-payload-center.png", location.href).href;
+    header.appendChild(heading);
+    if (status) {
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        header.appendChild(status);
+    }
     const wrap = document.createElement("div");
     wrap.className = "relapse-payload-grid";
     screen.appendChild(header);

@@ -9,6 +9,23 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   try {
     const page = await browser.newPage();
+    const heading = await page.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = 1252; c.height = 144;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#0c0c0f'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#8df0ad'; ctx.font = 'bold 14px Arial';
+      ctx.fillText('PS5 RELAPSE / PAYLOAD CENTER', 626, 23);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px Arial';
+      ctx.fillText('Payloads', 626, 66);
+      ctx.fillStyle = '#cccccc'; ctx.font = '16px Arial';
+      ctx.fillText('By Manohar Padul', 626, 94);
+      ctx.fillStyle = '#aaaaaa'; ctx.font = '16px Arial';
+      ctx.fillText('Select a payload to send it to the local ELF loader.', 626, 124);
+      return c.toDataURL('image/png').split(',')[1];
+    });
+    fs.writeFileSync('ui/hdr-payload-center.png', Buffer.from(heading, 'base64'));
     for (const tile of context.window.PAYLOAD_TILES) {
       const file = 'ui/btn-' + tile.key + '-default.png';
       if (fs.existsSync(file)) continue;

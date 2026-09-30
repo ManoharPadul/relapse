@@ -1,5 +1,5 @@
-const CACHE_NAME = "ps5-offline-v29";
-const OFFLINE_MARKER = "./__offline_ready_v29";
+const CACHE_NAME = "ps5-offline-v30";
+const OFFLINE_MARKER = "./__offline_ready_v30";
 
 const STATIC_ASSETS = [
   "./",
@@ -70,6 +70,7 @@ const STATIC_ASSETS = [
   "./ui/btn-pldmgr-v052-default.png",
   "./ui/btn-nanodns-default.png",
   "./ui/btn-shadowmountplus-default.png",
+  "./ui/hdr-payload-center.png",
   "./ui/hdr-payloads.png"
 ];
 
