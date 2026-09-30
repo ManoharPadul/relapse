@@ -41,3 +41,27 @@ that the offline cache is ready, the internet can be disabled, but keep the PS5
 connected to the same local Wi-Fi/LAN as the device used to open its services. A
 local network interface is important for the 13.60 chain; disabling Wi-Fi entirely
 can produce the observed `kaslr: no configured interface` or routing failure.
+
+## Upstream projects and payload sources
+
+Relapse is built from and integrates work from the following open-source projects.
+Payloads and source components remain subject to their respective upstream
+licenses and credits.
+
+| Project | Role in this project |
+|---|---|
+| [soniciso1/relapse](https://github.com/soniciso1/relapse) | Original Relapse PS5 WebKit/kernel exploit frontend and firmware-chain lineage |
+| [itsPLK/ps5-webkit-autoloader](https://github.com/itsPLK/ps5-webkit-autoloader) | Native autoloader, cache-installation, and build-architecture reference |
+| [itsPLK/ps5-payload-manager](https://github.com/itsPLK/ps5-payload-manager) | PLK Manager dashboard/payload source and port-8084 workflow |
+| [EchoStretch/kstuff-lite](https://github.com/EchoStretch/kstuff-lite) | `ps5-kstuff` payload source |
+| [juma-sayeh/PS5-Game-Compressor](https://github.com/juma-sayeh/PS5-Game-Compressor) | Game Compressor payload source and service workflow |
+| [etaHEN/etaHEN](https://github.com/etaHEN/etaHEN) | etaHEN AIO payload source |
+
+This repository adds the Relapse offline-cache flow, 13.60 integration, payload
+menu, local-network checks, and project branding around those upstream components.
+
+## Credits and disclaimer
+
+Thanks to all upstream developers and contributors. Use this project only on
+hardware and software you own or are authorized to test. The authors are not
+responsible for damage, data loss, crashes, or other consequences from its use.
