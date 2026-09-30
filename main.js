@@ -400,7 +400,10 @@ function log(string, level) {
   logElem.className = elemClass;
   consoleElem.appendChild(logElem);
 
-  consoleElem.scrollTop = consoleElem.scrollHeight;
+  // Sending a payload also logs here. Do not scroll the offscreen exploit
+  // console while the independent payload menu is active.
+  if (!document.body.classList.contains("payload-mode"))
+    consoleElem.scrollTop = consoleElem.scrollHeight;
 }
 
 const AF_INET = 2;
